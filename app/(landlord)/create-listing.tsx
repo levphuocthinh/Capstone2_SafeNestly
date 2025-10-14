@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Alert } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import {
   Text,
   TextInput,
@@ -8,67 +8,67 @@ import {
   Title,
   Chip,
   HelperText,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CreateListingScreen() {
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [area, setArea] = useState("");
-  const [address, setAddress] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('');
+  const [area, setArea] = useState('');
+  const [address, setAddress] = useState('');
+  const [description, setDescription] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const amenitiesList = [
-    "WiFi",
-    "Kitchen",
-    "Air Conditioning",
-    "Heating",
-    "Washing Machine",
-    "Dryer",
-    "Balcony",
-    "Parking",
-    "Gym Access",
-    "Pool",
-    "Security",
-    "Pet Friendly",
+    'WiFi',
+    'Kitchen',
+    'Air Conditioning',
+    'Heating',
+    'Washing Machine',
+    'Dryer',
+    'Balcony',
+    'Parking',
+    'Gym Access',
+    'Pool',
+    'Security',
+    'Pet Friendly',
   ];
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
       prev.includes(amenity)
         ? prev.filter((a) => a !== amenity)
-        : [...prev, amenity]
+        : [...prev, amenity],
     );
   };
 
   const validateForm = () => {
     if (!title.trim()) {
-      Alert.alert("Error", "Please enter a title");
+      Alert.alert('Error', 'Please enter a title');
       return false;
     }
     if (!price.trim() || isNaN(Number(price))) {
-      Alert.alert("Error", "Please enter a valid price");
+      Alert.alert('Error', 'Please enter a valid price');
       return false;
     }
     if (!area.trim() || isNaN(Number(area))) {
-      Alert.alert("Error", "Please enter a valid area");
+      Alert.alert('Error', 'Please enter a valid area');
       return false;
     }
     if (!address.trim()) {
-      Alert.alert("Error", "Please enter an address");
+      Alert.alert('Error', 'Please enter an address');
       return false;
     }
     if (!description.trim()) {
-      Alert.alert("Error", "Please enter a description");
+      Alert.alert('Error', 'Please enter a description');
       return false;
     }
     return true;
   };
 
-  const handleSave = async (saveStatus: "draft" | "publish") => {
+  const handleSave = async (saveStatus: 'draft' | 'publish') => {
     if (!validateForm()) return;
 
     setLoading(true);
@@ -86,23 +86,23 @@ export default function CreateListingScreen() {
         status: saveStatus,
       };
 
-      console.log("Saving listing:", listingData);
+      console.log('Saving listing:', listingData);
 
       Alert.alert(
-        "Success",
-        saveStatus === "draft"
-          ? "Listing saved as draft"
-          : "Listing published successfully",
+        'Success',
+        saveStatus === 'draft'
+          ? 'Listing saved as draft'
+          : 'Listing published successfully',
         [
           {
-            text: "OK",
+            text: 'OK',
             onPress: () => router.back(),
           },
-        ]
+        ],
       );
     } catch (error) {
-      console.error("Listing save error:", error);
-      Alert.alert("Error", "Failed to save listing. Please try again.");
+      console.error('Listing save error:', error);
+      Alert.alert('Error', 'Failed to save listing. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -117,8 +117,8 @@ export default function CreateListingScreen() {
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
           <Button
-            mode="text"
-            icon="arrow-left"
+            mode='text'
+            icon='arrow-left'
             onPress={handleBack}
             style={styles.backButton}
           >
@@ -134,52 +134,52 @@ export default function CreateListingScreen() {
             <Title style={styles.sectionTitle}>Basic Information</Title>
 
             <TextInput
-              label="Property Title *"
+              label='Property Title *'
               value={title}
               onChangeText={setTitle}
-              mode="outlined"
-              placeholder="e.g., Cozy Downtown Apartment"
+              mode='outlined'
+              placeholder='e.g., Cozy Downtown Apartment'
               style={styles.input}
             />
 
             <View style={styles.row}>
               <TextInput
-                label="Monthly Rent ($) *"
+                label='Monthly Rent ($) *'
                 value={price}
                 onChangeText={setPrice}
-                mode="outlined"
-                keyboardType="numeric"
-                placeholder="1200"
+                mode='outlined'
+                keyboardType='numeric'
+                placeholder='1200'
                 style={[styles.input, styles.halfInput]}
               />
               <TextInput
-                label="Area (m²) *"
+                label='Area (m²) *'
                 value={area}
                 onChangeText={setArea}
-                mode="outlined"
-                keyboardType="numeric"
-                placeholder="45"
+                mode='outlined'
+                keyboardType='numeric'
+                placeholder='45'
                 style={[styles.input, styles.halfInput]}
               />
             </View>
 
             <TextInput
-              label="Address *"
+              label='Address *'
               value={address}
               onChangeText={setAddress}
-              mode="outlined"
-              placeholder="123 Main St, City, State"
+              mode='outlined'
+              placeholder='123 Main St, City, State'
               style={styles.input}
             />
 
             <TextInput
-              label="Description *"
+              label='Description *'
               value={description}
               onChangeText={setDescription}
-              mode="outlined"
+              mode='outlined'
               multiline
               numberOfLines={4}
-              placeholder="Describe your property, location benefits, and what makes it special..."
+              placeholder='Describe your property, location benefits, and what makes it special...'
               style={styles.input}
             />
           </Card.Content>
@@ -216,14 +216,14 @@ export default function CreateListingScreen() {
 
             <View style={styles.photoPlaceholder}>
               <Button
-                mode="outlined"
-                icon="camera"
+                mode='outlined'
+                icon='camera'
                 style={styles.photoButton}
                 disabled
               >
                 Add Photos
               </Button>
-              <HelperText type="info">
+              <HelperText type='info'>
                 Photo upload will be available in the next update
               </HelperText>
             </View>
@@ -233,9 +233,9 @@ export default function CreateListingScreen() {
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <Button
-            mode="outlined"
-            onPress={() => handleSave("draft")}
-            loading={loading && status === "draft"}
+            mode='outlined'
+            onPress={() => handleSave('draft')}
+            loading={loading && status === 'draft'}
             disabled={loading}
             style={styles.draftButton}
           >
@@ -243,9 +243,9 @@ export default function CreateListingScreen() {
           </Button>
 
           <Button
-            mode="contained"
-            onPress={() => handleSave("publish")}
-            loading={loading && status === "publish"}
+            mode='contained'
+            onPress={() => handleSave('publish')}
+            loading={loading && status === 'publish'}
             disabled={loading}
             style={styles.publishButton}
           >
@@ -262,27 +262,27 @@ export default function CreateListingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     margin: 0,
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   headerSpacer: {
     width: 60,
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   subtitle: {
@@ -305,34 +305,34 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   row: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   halfInput: {
     flex: 1,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   amenityChip: {
     marginBottom: 8,
   },
   photoPlaceholder: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 24,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: "#e9ecef",
-    borderStyle: "dashed",
+    borderColor: '#e9ecef',
+    borderStyle: 'dashed',
   },
   photoButton: {
     marginBottom: 8,
   },
   actionButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     padding: 16,
   },

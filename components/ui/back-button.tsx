@@ -1,6 +1,6 @@
-import React from "react";
-import { Appbar } from "react-native-paper";
-import { router } from "expo-router";
+import React from 'react';
+import { Appbar } from 'react-native-paper';
+import { router } from 'expo-router';
 
 interface BackButtonProps {
   onPress?: () => void;
@@ -10,7 +10,7 @@ interface BackButtonProps {
 
 export const BackButton: React.FC<BackButtonProps> = ({
   onPress,
-  title = "Back",
+  title = 'Back',
   subtitle,
 }) => {
   const handlePress = () => {
@@ -23,7 +23,7 @@ export const BackButton: React.FC<BackButtonProps> = ({
       router.back();
     } else {
       // Fallback navigation
-      router.replace("/(auth)/login");
+      router.replace('/(auth)/login');
     }
   };
 

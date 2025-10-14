@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import {
   Text,
   Card,
@@ -9,11 +9,11 @@ import {
   Chip,
   Modal,
   Portal,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 interface RoomDetails {
   id: string;
@@ -27,25 +27,25 @@ interface RoomDetails {
 }
 
 const mockRoomDetails: RoomDetails = {
-  id: "1",
-  title: "Modern Downtown Apartment",
+  id: '1',
+  title: 'Modern Downtown Apartment',
   price: 1200,
-  location: "Downtown, City Center",
+  location: 'Downtown, City Center',
   area: 45,
   images: [
-    "https://via.placeholder.com/400x300/6200ee/ffffff?text=Living+Room",
-    "https://via.placeholder.com/400x300/4CAF50/ffffff?text=Kitchen",
-    "https://via.placeholder.com/400x300/FF9800/ffffff?text=Bedroom",
+    'https://via.placeholder.com/400x300/6200ee/ffffff?text=Living+Room',
+    'https://via.placeholder.com/400x300/4CAF50/ffffff?text=Kitchen',
+    'https://via.placeholder.com/400x300/FF9800/ffffff?text=Bedroom',
   ],
   amenities: [
-    "WiFi",
-    "Kitchen",
-    "Air Conditioning",
-    "Washing Machine",
-    "Balcony",
+    'WiFi',
+    'Kitchen',
+    'Air Conditioning',
+    'Washing Machine',
+    'Balcony',
   ],
   description:
-    "Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students.",
+    'Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students.',
 };
 
 export default function GuestRoomDetailsScreen() {
@@ -63,12 +63,12 @@ export default function GuestRoomDetailsScreen() {
 
   const handleLogin = () => {
     setShowLoginModal(false);
-    router.push("/(auth)/login");
+    router.push('/(auth)/login');
   };
 
   const handleRegister = () => {
     setShowLoginModal(false);
-    router.push("/(auth)/register");
+    router.push('/(auth)/register');
   };
 
   return (
@@ -77,16 +77,16 @@ export default function GuestRoomDetailsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Button
-            mode="text"
-            icon="arrow-left"
+            mode='text'
+            icon='arrow-left'
             onPress={handleBack}
             style={styles.backButton}
           >
             Back
           </Button>
           <Button
-            mode="text"
-            icon="heart-outline"
+            mode='text'
+            icon='heart-outline'
             onPress={handleLoginRequired}
           >
             Save
@@ -101,7 +101,7 @@ export default function GuestRoomDetailsScreen() {
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={(event) => {
               const index = Math.round(
-                event.nativeEvent.contentOffset.x / width
+                event.nativeEvent.contentOffset.x / width,
               );
               setCurrentImageIndex(index);
             }}
@@ -173,8 +173,8 @@ export default function GuestRoomDetailsScreen() {
               <Text style={styles.featureItem}>🤖 AI Roommate Matching</Text>
             </View>
             <Button
-              mode="contained"
-              onPress={() => router.push("/(auth)/register")}
+              mode='contained'
+              onPress={() => router.push('/(auth)/register')}
               style={styles.upgradeButton}
             >
               Sign Up for Full Access
@@ -186,18 +186,18 @@ export default function GuestRoomDetailsScreen() {
       {/* Limited Contact Actions */}
       <View style={styles.contactActions}>
         <Button
-          mode="outlined"
+          mode='outlined'
           onPress={handleLoginRequired}
           style={styles.contactButton}
-          icon="heart-outline"
+          icon='heart-outline'
         >
           Save Room
         </Button>
         <Button
-          mode="contained"
+          mode='contained'
           onPress={handleLoginRequired}
           style={styles.contactButton}
-          icon="message"
+          icon='message'
         >
           Contact Landlord
         </Button>
@@ -220,14 +220,14 @@ export default function GuestRoomDetailsScreen() {
 
               <View style={styles.modalButtons}>
                 <Button
-                  mode="outlined"
+                  mode='outlined'
                   onPress={handleLogin}
                   style={styles.modalButton}
                 >
                   Sign In
                 </Button>
                 <Button
-                  mode="contained"
+                  mode='contained'
                   onPress={handleRegister}
                   style={styles.modalButton}
                 >
@@ -236,7 +236,7 @@ export default function GuestRoomDetailsScreen() {
               </View>
 
               <Button
-                mode="text"
+                mode='text'
                 onPress={() => setShowLoginModal(false)}
                 style={styles.cancelButton}
               >
@@ -253,45 +253,45 @@ export default function GuestRoomDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   backButton: {
     margin: 0,
   },
   imageContainer: {
-    position: "relative",
+    position: 'relative',
   },
   roomImage: {
     width: width,
     height: 250,
   },
   imageIndicator: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 16,
     left: 0,
     right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 8,
   },
   indicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   activeIndicator: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   infoCard: {
     margin: 16,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   roomTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   roomLocation: {
@@ -308,15 +308,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   priceAreaContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
   priceText: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   areaText: {
     fontSize: 16,
@@ -324,12 +324,12 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: '#e0e0e0',
     marginVertical: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   description: {
@@ -337,8 +337,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   amenityChip: {
@@ -348,13 +348,13 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 0,
     marginBottom: 100,
-    backgroundColor: "#FFF3E0",
+    backgroundColor: '#FFF3E0',
     elevation: 3,
   },
   limitedTitle: {
     fontSize: 20,
-    fontWeight: "600",
-    color: "#F57C00",
+    fontWeight: '600',
+    color: '#F57C00',
     marginBottom: 12,
   },
   limitedText: {
@@ -371,18 +371,18 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   upgradeButton: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   contactActions: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    borderTopColor: '#e0e0e0',
     gap: 12,
   },
   contactButton: {
@@ -392,23 +392,23 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalCard: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 20,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
   },
   modalText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
   },
   modalButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 16,
   },

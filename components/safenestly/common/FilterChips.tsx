@@ -1,6 +1,6 @@
-import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Chip } from "react-native-paper";
+import React from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text, Chip } from 'react-native-paper';
 
 interface FilterChipsProps {
   filters: string[];
@@ -12,7 +12,7 @@ interface FilterChipsProps {
 export function FilterChips({
   filters,
   onRemoveFilter,
-  title = "Active Filters:",
+  title = 'Active Filters:',
   showTitle = true,
 }: FilterChipsProps) {
   if (filters.length === 0) {
@@ -46,20 +46,20 @@ export function FilterChips({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   title: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   scrollContent: {
     paddingRight: 16,
   },
   chipContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   chip: {

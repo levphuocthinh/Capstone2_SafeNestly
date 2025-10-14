@@ -15,7 +15,7 @@ export default function MapScreen() {
         <Text variant='titleLarge' style={styles.headerTitle}>
           Map View
         </Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.viewWidth} />
       </View>
       <MapSearch />
     </SafeAreaView>
@@ -40,5 +40,8 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  viewWidth: {
+    width: 24,
   },
 });

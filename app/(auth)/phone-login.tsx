@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, TextInput, Button, Card, useTheme } from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text, TextInput, Button, Card, useTheme } from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PhoneLoginScreen() {
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
@@ -19,7 +19,7 @@ export default function PhoneLoginScreen() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setIsCodeSent(true);
     } catch (error) {
-      console.error("Send code error:", error);
+      console.error('Send code error:', error);
     } finally {
       setLoading(false);
     }
@@ -31,9 +31,9 @@ export default function PhoneLoginScreen() {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      router.replace("/(tenant)/home");
+      router.replace('/(tenant)/home');
     } catch (error) {
-      console.error("Verify code error:", error);
+      console.error('Verify code error:', error);
     } finally {
       setLoading(false);
     }
@@ -48,23 +48,23 @@ export default function PhoneLoginScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Button
-            mode="text"
+            mode='text'
             onPress={handleBack}
-            icon="arrow-left"
+            icon='arrow-left'
             style={styles.backButton}
           >
             Back
           </Button>
           <Text
-            variant="headlineLarge"
+            variant='headlineLarge'
             style={[styles.title, { color: theme.colors.primary }]}
           >
             Phone Verification
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant='bodyLarge' style={styles.subtitle}>
             {isCodeSent
-              ? "Enter the verification code sent to your phone"
-              : "Enter your phone number to receive a verification code"}
+              ? 'Enter the verification code sent to your phone'
+              : 'Enter your phone number to receive a verification code'}
           </Text>
         </View>
 
@@ -72,24 +72,24 @@ export default function PhoneLoginScreen() {
           <Card.Content>
             {!isCodeSent ? (
               <>
-                <Text variant="headlineSmall" style={styles.cardTitle}>
+                <Text variant='headlineSmall' style={styles.cardTitle}>
                   Enter Phone Number
                 </Text>
                 <View style={styles.inputContainer}>
                   <TextInput
-                    label="Phone Number"
+                    label='Phone Number'
                     value={phoneNumber}
                     onChangeText={setPhoneNumber}
-                    mode="outlined"
-                    keyboardType="phone-pad"
-                    left={<TextInput.Icon icon="phone" />}
-                    placeholder="+1 (555) 123-4567"
+                    mode='outlined'
+                    keyboardType='phone-pad'
+                    left={<TextInput.Icon icon='phone' />}
+                    placeholder='+1 (555) 123-4567'
                     style={styles.input}
                   />
                 </View>
 
                 <Button
-                  mode="contained"
+                  mode='contained'
                   onPress={handleSendCode}
                   loading={loading}
                   disabled={!phoneNumber}
@@ -101,29 +101,29 @@ export default function PhoneLoginScreen() {
               </>
             ) : (
               <>
-                <Text variant="headlineSmall" style={styles.cardTitle}>
+                <Text variant='headlineSmall' style={styles.cardTitle}>
                   Verify Code
                 </Text>
-                <Text variant="bodyMedium" style={styles.phoneDisplay}>
+                <Text variant='bodyMedium' style={styles.phoneDisplay}>
                   Code sent to: {phoneNumber}
                 </Text>
 
                 <View style={styles.inputContainer}>
                   <TextInput
-                    label="Verification Code"
+                    label='Verification Code'
                     value={verificationCode}
                     onChangeText={setVerificationCode}
-                    mode="outlined"
-                    keyboardType="number-pad"
-                    left={<TextInput.Icon icon="shield-check" />}
-                    placeholder="Enter 6-digit code"
+                    mode='outlined'
+                    keyboardType='number-pad'
+                    left={<TextInput.Icon icon='shield-check' />}
+                    placeholder='Enter 6-digit code'
                     maxLength={6}
                     style={styles.input}
                   />
                 </View>
 
                 <Button
-                  mode="contained"
+                  mode='contained'
                   onPress={handleVerifyCode}
                   loading={loading}
                   disabled={verificationCode.length !== 6}
@@ -134,7 +134,7 @@ export default function PhoneLoginScreen() {
                 </Button>
 
                 <Button
-                  mode="text"
+                  mode='text'
                   onPress={() => setIsCodeSent(false)}
                   style={styles.resendButton}
                 >
@@ -152,29 +152,29 @@ export default function PhoneLoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: 20,
   },
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 40,
   },
   backButton: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginBottom: 20,
   },
   title: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     paddingHorizontal: 20,
   },
@@ -183,15 +183,15 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 24,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     marginBottom: 8,
   },
   phoneDisplay: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     marginBottom: 24,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   inputContainer: {
     marginBottom: 20,

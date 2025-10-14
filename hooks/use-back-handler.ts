@@ -5,9 +5,9 @@ import { router, usePathname } from 'expo-router';
 // Define routes where back button should exit the app
 const EXIT_ROUTES = [
   '/(tenant)/home',
-  '/(landlord)/dashboard', 
+  '/(landlord)/dashboard',
   '/(guest)/home',
-  '/(auth)/login'
+  '/(auth)/login',
 ];
 
 // Define routes where back button should go to specific pages
@@ -29,21 +29,17 @@ export const useBackHandler = () => {
     const backAction = () => {
       // If on main screens, show exit confirmation
       if (EXIT_ROUTES.includes(pathname)) {
-        Alert.alert(
-          "Exit App", 
-          "Are you sure you want to exit SafeNestly?",
-          [
-            {
-              text: "Cancel",
-              onPress: () => null,
-              style: "cancel"
-            },
-            { 
-              text: "Exit", 
-              onPress: () => BackHandler.exitApp() 
-            }
-          ]
-        );
+        Alert.alert('Exit App', 'Are you sure you want to exit SafeNestly?', [
+          {
+            text: 'Cancel',
+            onPress: () => null,
+            style: 'cancel',
+          },
+          {
+            text: 'Exit',
+            onPress: () => BackHandler.exitApp(),
+          },
+        ]);
         return true; // Prevent default behavior
       }
 
@@ -69,11 +65,14 @@ export const useBackHandler = () => {
       } else {
         router.replace('/(auth)/login');
       }
-      
+
       return true; // Prevent default behavior
     };
 
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
 
     return () => backHandler.remove();
   }, [pathname]);

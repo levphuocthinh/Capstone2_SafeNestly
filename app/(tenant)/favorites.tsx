@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
-import { Text, Card, Button, Chip, Searchbar } from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { Text, Card, Button, Chip, Searchbar } from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface SavedRoom {
   id: string;
@@ -17,30 +17,30 @@ interface SavedRoom {
 
 const mockSavedRooms: SavedRoom[] = [
   {
-    id: "1",
-    title: "Cozy Downtown Apartment",
+    id: '1',
+    title: 'Cozy Downtown Apartment',
     price: 1200,
-    location: "Downtown, City Center",
+    location: 'Downtown, City Center',
     area: 45,
-    image: "https://via.placeholder.com/300x200",
-    amenities: ["WiFi", "Kitchen", "Air Conditioning"],
-    dateSaved: "2 days ago",
+    image: 'https://via.placeholder.com/300x200',
+    amenities: ['WiFi', 'Kitchen', 'Air Conditioning'],
+    dateSaved: '2 days ago',
   },
   {
-    id: "2",
-    title: "Modern Studio Near University",
+    id: '2',
+    title: 'Modern Studio Near University',
     price: 800,
-    location: "University District",
+    location: 'University District',
     area: 35,
-    image: "https://via.placeholder.com/300x200",
-    amenities: ["WiFi", "Gym", "Parking"],
-    dateSaved: "1 week ago",
+    image: 'https://via.placeholder.com/300x200',
+    amenities: ['WiFi', 'Gym', 'Parking'],
+    dateSaved: '1 week ago',
   },
 ];
 
 export default function FavoritesScreen() {
   const [savedRooms, setSavedRooms] = useState(mockSavedRooms);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleRoomPress = (roomId: string) => {
     router.push(`/(tenant)/room-details/${roomId}`);
@@ -51,13 +51,13 @@ export default function FavoritesScreen() {
   };
 
   const handleCompareRooms = () => {
-    router.push("./compare-rooms");
+    router.push('./compare-rooms');
   };
 
   const filteredRooms = savedRooms.filter(
     (room) =>
       room.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      room.location.toLowerCase().includes(searchQuery.toLowerCase())
+      room.location.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const renderRoomCard = ({ item }: { item: SavedRoom }) => (
@@ -65,12 +65,12 @@ export default function FavoritesScreen() {
       <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <Text variant="titleMedium" style={styles.roomTitle}>
+          <Text variant='titleMedium' style={styles.roomTitle}>
             {item.title}
           </Text>
           <Button
-            mode="text"
-            icon="close"
+            mode='text'
+            icon='close'
             onPress={() => handleRemoveRoom(item.id)}
             style={styles.removeButton}
           >
@@ -78,7 +78,7 @@ export default function FavoritesScreen() {
           </Button>
         </View>
 
-        <Text variant="bodyMedium" style={styles.roomLocation}>
+        <Text variant='bodyMedium' style={styles.roomLocation}>
           {item.location}
         </Text>
 
@@ -104,14 +104,14 @@ export default function FavoritesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Button
-          mode="text"
-          icon="arrow-left"
+          mode='text'
+          icon='arrow-left'
           onPress={() => router.back()}
           style={styles.backButton}
         >
           Back
         </Button>
-        <Text variant="headlineSmall" style={styles.headerTitle}>
+        <Text variant='headlineSmall' style={styles.headerTitle}>
           Saved Rooms
         </Text>
         <View style={styles.headerSpacer} />
@@ -120,15 +120,15 @@ export default function FavoritesScreen() {
       {savedRooms.length > 0 && (
         <View style={styles.searchSection}>
           <Searchbar
-            placeholder="Search saved rooms..."
+            placeholder='Search saved rooms...'
             onChangeText={setSearchQuery}
             value={searchQuery}
             style={styles.searchBar}
           />
 
           <Button
-            mode="contained-tonal"
-            icon="compare"
+            mode='contained-tonal'
+            icon='compare'
             onPress={handleCompareRooms}
             style={styles.compareButton}
           >
@@ -140,15 +140,15 @@ export default function FavoritesScreen() {
       {filteredRooms.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>No Saved Rooms</Text>
-          <Text variant="bodyMedium" style={styles.emptySubtitle}>
+          <Text variant='bodyMedium' style={styles.emptySubtitle}>
             {savedRooms.length === 0
               ? "You haven't saved any rooms yet. Start browsing to save rooms you're interested in!"
-              : "No rooms match your search criteria."}
+              : 'No rooms match your search criteria.'}
           </Text>
           {savedRooms.length === 0 && (
             <Button
-              mode="contained"
-              onPress={() => router.push("/(tenant)/home")}
+              mode='contained'
+              onPress={() => router.push('/(tenant)/home')}
               style={styles.browseButton}
             >
               Browse Rooms
@@ -171,40 +171,40 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     margin: 0,
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   headerSpacer: {
     width: 60,
   },
   searchSection: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   searchBar: {
     marginBottom: 12,
     elevation: 1,
   },
   compareButton: {
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   listContainer: {
     padding: 16,
@@ -220,14 +220,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   roomTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
@@ -241,23 +241,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   roomDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   priceText: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   areaText: {
     fontSize: 14,
     opacity: 0.7,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 6,
     marginBottom: 8,
   },
@@ -268,23 +268,23 @@ const styles = StyleSheet.create({
   dateSaved: {
     fontSize: 12,
     opacity: 0.6,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   emptyState: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     marginBottom: 24,
     lineHeight: 24,

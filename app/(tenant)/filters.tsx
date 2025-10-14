@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Button,
@@ -8,9 +8,9 @@ import {
   Switch,
   TextInput,
   useTheme,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FiltersScreen() {
   const theme = useTheme();
@@ -18,23 +18,23 @@ export default function FiltersScreen() {
   const [roomType, setRoomType] = useState<string[]>([]);
   const [amenities, setAmenities] = useState<string[]>([]);
   const [petFriendly, setPetFriendly] = useState(false);
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState('');
 
-  const roomTypes = ["Studio", "1 Bedroom", "2 Bedroom", "3+ Bedroom"];
+  const roomTypes = ['Studio', '1 Bedroom', '2 Bedroom', '3+ Bedroom'];
   const amenityOptions = [
-    "WiFi",
-    "Parking",
-    "Laundry",
-    "Pool",
-    "Gym",
-    "Air Conditioning",
-    "Dishwasher",
-    "Balcony",
+    'WiFi',
+    'Parking',
+    'Laundry',
+    'Pool',
+    'Gym',
+    'Air Conditioning',
+    'Dishwasher',
+    'Balcony',
   ];
 
   const toggleRoomType = (type: string) => {
     setRoomType((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   };
 
@@ -42,13 +42,13 @@ export default function FiltersScreen() {
     setAmenities((prev) =>
       prev.includes(amenity)
         ? prev.filter((a) => a !== amenity)
-        : [...prev, amenity]
+        : [...prev, amenity],
     );
   };
 
   const handleApplyFilters = () => {
     // Apply filters logic here
-    console.log("Filters applied:", {
+    console.log('Filters applied:', {
       priceRange,
       roomType,
       amenities,
@@ -63,7 +63,7 @@ export default function FiltersScreen() {
     setRoomType([]);
     setAmenities([]);
     setPetFriendly(false);
-    setLocation("");
+    setLocation('');
   };
 
   return (
@@ -71,29 +71,29 @@ export default function FiltersScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text
-            variant="headlineMedium"
+            variant='headlineMedium'
             style={[styles.title, { color: theme.colors.primary }]}
           >
             Filter Results
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant='bodyLarge' style={styles.subtitle}>
             Customize your search preferences
           </Text>
         </View>
 
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Price Range
             </Text>
             <View style={styles.priceContainer}>
-              <Text variant="bodyMedium">
+              <Text variant='bodyMedium'>
                 ${priceRange[0]} - ${priceRange[1]} per month
               </Text>
               <View style={styles.sliderContainer}>
                 {/* Note: React Native Paper doesn't have Slider, using placeholder */}
                 <View style={styles.sliderPlaceholder}>
-                  <Text variant="bodySmall">Price slider placeholder</Text>
+                  <Text variant='bodySmall'>Price slider placeholder</Text>
                 </View>
               </View>
             </View>
@@ -102,7 +102,7 @@ export default function FiltersScreen() {
 
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Room Type
             </Text>
             <View style={styles.chipContainer}>
@@ -122,23 +122,23 @@ export default function FiltersScreen() {
 
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Location
             </Text>
             <TextInput
-              label="Preferred area or neighborhood"
+              label='Preferred area or neighborhood'
               value={location}
               onChangeText={setLocation}
-              mode="outlined"
+              mode='outlined'
               style={styles.input}
-              placeholder="e.g., Downtown, University District"
+              placeholder='e.g., Downtown, University District'
             />
           </Card.Content>
         </Card>
 
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Amenities
             </Text>
             <View style={styles.chipContainer}>
@@ -159,7 +159,7 @@ export default function FiltersScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.switchContainer}>
-              <Text variant="titleMedium">Pet Friendly</Text>
+              <Text variant='titleMedium'>Pet Friendly</Text>
               <Switch value={petFriendly} onValueChange={setPetFriendly} />
             </View>
           </Card.Content>
@@ -167,14 +167,14 @@ export default function FiltersScreen() {
 
         <View style={styles.buttonContainer}>
           <Button
-            mode="outlined"
+            mode='outlined'
             onPress={handleClearFilters}
             style={styles.clearButton}
           >
             Clear All
           </Button>
           <Button
-            mode="contained"
+            mode='contained'
             onPress={handleApplyFilters}
             style={styles.applyButton}
           >
@@ -189,7 +189,7 @@ export default function FiltersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     padding: 16,
@@ -198,11 +198,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
   },
   card: {
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   priceContainer: {
     marginVertical: 8,
@@ -220,14 +220,14 @@ const styles = StyleSheet.create({
   },
   sliderPlaceholder: {
     height: 40,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   chip: {
@@ -237,12 +237,12 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   switchContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   buttonContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 16,
     marginTop: 20,
   },

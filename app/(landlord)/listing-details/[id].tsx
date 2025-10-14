@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Card,
@@ -8,10 +8,10 @@ import {
   Chip,
   List,
   Divider,
-} from "react-native-paper";
-import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BackButton from "../../../components/ui/back-button";
+} from 'react-native-paper';
+import { router, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import BackButton from '../../../components/ui/back-button';
 
 interface Listing {
   id: string;
@@ -19,7 +19,7 @@ interface Listing {
   price: number;
   location: string;
   area: number;
-  status: "active" | "draft" | "rented";
+  status: 'active' | 'draft' | 'rented';
   description: string;
   amenities: string[];
   images: string[];
@@ -29,30 +29,30 @@ interface Listing {
 }
 
 const mockListing: Listing = {
-  id: "1",
-  title: "Modern Downtown Apartment",
+  id: '1',
+  title: 'Modern Downtown Apartment',
   price: 1200,
-  location: "Downtown, City Center",
+  location: 'Downtown, City Center',
   area: 45,
-  status: "active",
+  status: 'active',
   description:
-    "Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students. Recently renovated with high-end finishes.",
+    'Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students. Recently renovated with high-end finishes.',
   amenities: [
-    "WiFi",
-    "Kitchen",
-    "Air Conditioning",
-    "Washing Machine",
-    "Balcony",
-    "Parking",
+    'WiFi',
+    'Kitchen',
+    'Air Conditioning',
+    'Washing Machine',
+    'Balcony',
+    'Parking',
   ],
   images: [
-    "https://via.placeholder.com/400x300",
-    "https://via.placeholder.com/400x300",
-    "https://via.placeholder.com/400x300",
+    'https://via.placeholder.com/400x300',
+    'https://via.placeholder.com/400x300',
+    'https://via.placeholder.com/400x300',
   ],
   applicants: 12,
   views: 156,
-  createdAt: "2024-01-15",
+  createdAt: '2024-01-15',
 };
 
 export default function ListingDetailsScreen() {
@@ -69,25 +69,25 @@ export default function ListingDetailsScreen() {
 
   const handleToggleStatus = () => {
     // Toggle between active/draft status
-    console.log("Toggle listing status");
+    console.log('Toggle listing status');
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active":
-        return "#4CAF50";
-      case "draft":
-        return "#FF9800";
-      case "rented":
-        return "#2196F3";
+      case 'active':
+        return '#4CAF50';
+      case 'draft':
+        return '#FF9800';
+      case 'rented':
+        return '#2196F3';
       default:
-        return "#757575";
+        return '#757575';
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title="Listing Details" />
+      <BackButton title='Listing Details' />
 
       <ScrollView style={styles.scrollContainer}>
         {/* Header Card */}
@@ -95,7 +95,7 @@ export default function ListingDetailsScreen() {
           <Card.Cover source={{ uri: listing.images[0] }} />
           <Card.Content>
             <View style={styles.headerContent}>
-              <Text variant="headlineSmall" style={styles.title}>
+              <Text variant='headlineSmall' style={styles.title}>
                 {listing.title}
               </Text>
               <Chip
@@ -109,15 +109,15 @@ export default function ListingDetailsScreen() {
               </Chip>
             </View>
 
-            <Text variant="bodyLarge" style={styles.location}>
+            <Text variant='bodyLarge' style={styles.location}>
               📍 {listing.location}
             </Text>
 
             <View style={styles.priceAreaContainer}>
-              <Text variant="headlineSmall" style={styles.price}>
+              <Text variant='headlineSmall' style={styles.price}>
                 ${listing.price}/month
               </Text>
-              <Text variant="bodyLarge" style={styles.area}>
+              <Text variant='bodyLarge' style={styles.area}>
                 {listing.area}m²
               </Text>
             </View>
@@ -127,34 +127,34 @@ export default function ListingDetailsScreen() {
         {/* Stats Card */}
         <Card style={styles.statsCard}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Performance
             </Text>
 
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {listing.views}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Views
                 </Text>
               </View>
 
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {listing.applicants}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Applicants
                 </Text>
               </View>
 
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {Math.round(listing.views / 30)}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Daily Views
                 </Text>
               </View>
@@ -165,10 +165,10 @@ export default function ListingDetailsScreen() {
         {/* Description Card */}
         <Card style={styles.descriptionCard}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Description
             </Text>
-            <Text variant="bodyMedium" style={styles.description}>
+            <Text variant='bodyMedium' style={styles.description}>
               {listing.description}
             </Text>
           </Card.Content>
@@ -177,7 +177,7 @@ export default function ListingDetailsScreen() {
         {/* Amenities Card */}
         <Card style={styles.amenitiesCard}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Amenities
             </Text>
             <View style={styles.amenitiesContainer}>
@@ -193,31 +193,31 @@ export default function ListingDetailsScreen() {
         {/* Actions Card */}
         <Card style={styles.actionsCard}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Actions
             </Text>
 
             <List.Item
-              title="Edit Listing"
-              description="Modify listing details and photos"
-              left={(props) => <List.Icon {...props} icon="pencil" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Edit Listing'
+              description='Modify listing details and photos'
+              left={(props) => <List.Icon {...props} icon='pencil' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleEditListing}
             />
 
             <List.Item
-              title="View Applicants"
+              title='View Applicants'
               description={`${listing.applicants} people interested`}
-              left={(props) => <List.Icon {...props} icon="account-group" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              left={(props) => <List.Icon {...props} icon='account-group' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleViewApplicants}
             />
 
             <List.Item
-              title="Toggle Status"
-              description="Change between active/draft"
-              left={(props) => <List.Icon {...props} icon="toggle-switch" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Toggle Status'
+              description='Change between active/draft'
+              left={(props) => <List.Icon {...props} icon='toggle-switch' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleToggleStatus}
             />
           </Card.Content>
@@ -230,7 +230,7 @@ export default function ListingDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
@@ -240,35 +240,35 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   title: {
     flex: 1,
     marginRight: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   statusChip: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   statusText: {
-    color: "white",
-    fontWeight: "600",
+    color: 'white',
+    fontWeight: '600',
   },
   location: {
     marginBottom: 12,
     opacity: 0.7,
   },
   priceAreaContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   price: {
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   area: {
     opacity: 0.7,
@@ -279,18 +279,18 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   statItem: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   statValue: {
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   statLabel: {
     opacity: 0.7,
@@ -308,8 +308,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   amenityChip: {

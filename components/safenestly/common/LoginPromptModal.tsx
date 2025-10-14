@@ -1,7 +1,7 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
-import { Card, Text, Button, Modal, Portal } from "react-native-paper";
-import { router } from "expo-router";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Card, Text, Button, Modal, Portal } from 'react-native-paper';
+import { router } from 'expo-router';
 
 interface LoginPromptModalProps {
   readonly visible: boolean;
@@ -14,18 +14,18 @@ interface LoginPromptModalProps {
 export function LoginPromptModal({
   visible,
   onDismiss,
-  title = "Account Required",
-  message = "Please sign in or create an account to access this feature.",
+  title = 'Account Required',
+  message = 'Please sign in or create an account to access this feature.',
   showRegisterButton = true,
 }: LoginPromptModalProps) {
   const handleLogin = () => {
     onDismiss();
-    router.push("/(auth)/login");
+    router.push('/(auth)/login');
   };
 
   const handleRegister = () => {
     onDismiss();
-    router.push("/(auth)/register");
+    router.push('/(auth)/register');
   };
 
   return (
@@ -37,16 +37,16 @@ export function LoginPromptModal({
       >
         <Card>
           <Card.Content style={styles.modalCard}>
-            <Text variant="titleLarge" style={styles.modalTitle}>
+            <Text variant='titleLarge' style={styles.modalTitle}>
               {title}
             </Text>
-            <Text variant="bodyMedium" style={styles.modalText}>
+            <Text variant='bodyMedium' style={styles.modalText}>
               {message}
             </Text>
 
             <View style={styles.modalButtons}>
               <Button
-                mode="outlined"
+                mode='outlined'
                 onPress={handleLogin}
                 style={styles.modalButton}
               >
@@ -54,7 +54,7 @@ export function LoginPromptModal({
               </Button>
               {showRegisterButton && (
                 <Button
-                  mode="contained"
+                  mode='contained'
                   onPress={handleRegister}
                   style={styles.modalButton}
                 >
@@ -63,7 +63,7 @@ export function LoginPromptModal({
               )}
             </View>
 
-            <Button mode="text" onPress={onDismiss} style={styles.cancelButton}>
+            <Button mode='text' onPress={onDismiss} style={styles.cancelButton}>
               Cancel
             </Button>
           </Card.Content>
@@ -78,23 +78,23 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalCard: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 20,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
   },
   modalText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
   },
   modalButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 16,
   },

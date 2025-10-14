@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
-import { Text, Card, Chip, Searchbar, FAB } from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BackButton from "../../components/ui/back-button";
+import React, { useState } from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
+import { Text, Card, Chip, Searchbar, FAB } from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import BackButton from '../../components/ui/back-button';
 
 interface Listing {
   id: string;
@@ -11,7 +11,7 @@ interface Listing {
   price: number;
   location: string;
   area: number;
-  status: "active" | "draft" | "rented";
+  status: 'active' | 'draft' | 'rented';
   image: string;
   applicants: number;
   views: number;
@@ -19,46 +19,46 @@ interface Listing {
 
 const mockListings: Listing[] = [
   {
-    id: "1",
-    title: "Modern Downtown Apartment",
+    id: '1',
+    title: 'Modern Downtown Apartment',
     price: 1200,
-    location: "Downtown, City Center",
+    location: 'Downtown, City Center',
     area: 45,
-    status: "active",
-    image: "https://via.placeholder.com/300x200",
+    status: 'active',
+    image: 'https://via.placeholder.com/300x200',
     applicants: 12,
     views: 156,
   },
   {
-    id: "2",
-    title: "Cozy Studio Near University",
+    id: '2',
+    title: 'Cozy Studio Near University',
     price: 800,
-    location: "University District",
+    location: 'University District',
     area: 30,
-    status: "active",
-    image: "https://via.placeholder.com/300x200",
+    status: 'active',
+    image: 'https://via.placeholder.com/300x200',
     applicants: 8,
     views: 89,
   },
   {
-    id: "3",
-    title: "Spacious 2BR with Garden",
+    id: '3',
+    title: 'Spacious 2BR with Garden',
     price: 1500,
-    location: "Suburbs",
+    location: 'Suburbs',
     area: 65,
-    status: "draft",
-    image: "https://via.placeholder.com/300x200",
+    status: 'draft',
+    image: 'https://via.placeholder.com/300x200',
     applicants: 0,
     views: 23,
   },
   {
-    id: "4",
-    title: "Luxury Penthouse",
+    id: '4',
+    title: 'Luxury Penthouse',
     price: 2500,
-    location: "Downtown Heights",
+    location: 'Downtown Heights',
     area: 85,
-    status: "rented",
-    image: "https://via.placeholder.com/300x200",
+    status: 'rented',
+    image: 'https://via.placeholder.com/300x200',
     applicants: 25,
     views: 342,
   },
@@ -66,14 +66,14 @@ const mockListings: Listing[] = [
 
 export default function AllListingsScreen() {
   const [listings] = useState(mockListings);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
   const filterOptions = [
-    { key: "all", label: "All" },
-    { key: "active", label: "Active" },
-    { key: "draft", label: "Draft" },
-    { key: "rented", label: "Rented" },
+    { key: 'all', label: 'All' },
+    { key: 'active', label: 'Active' },
+    { key: 'draft', label: 'Draft' },
+    { key: 'rented', label: 'Rented' },
   ];
 
   const filteredListings = listings.filter((listing) => {
@@ -81,7 +81,7 @@ export default function AllListingsScreen() {
       listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listing.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter =
-      selectedFilter === "all" || listing.status === selectedFilter;
+      selectedFilter === 'all' || listing.status === selectedFilter;
     return matchesSearch && matchesFilter;
   });
 
@@ -90,19 +90,19 @@ export default function AllListingsScreen() {
   };
 
   const handleCreateListing = () => {
-    router.push("./create-listing");
+    router.push('./create-listing');
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "active":
-        return "#4CAF50";
-      case "draft":
-        return "#FF9800";
-      case "rented":
-        return "#2196F3";
+      case 'active':
+        return '#4CAF50';
+      case 'draft':
+        return '#FF9800';
+      case 'rented':
+        return '#2196F3';
       default:
-        return "#757575";
+        return '#757575';
     }
   };
 
@@ -114,7 +114,7 @@ export default function AllListingsScreen() {
       <Card.Cover source={{ uri: item.image }} style={styles.cardImage} />
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <Text variant="titleMedium" style={styles.listingTitle}>
+          <Text variant='titleMedium' style={styles.listingTitle}>
             {item.title}
           </Text>
           <Chip
@@ -128,33 +128,33 @@ export default function AllListingsScreen() {
           </Chip>
         </View>
 
-        <Text variant="bodyMedium" style={styles.listingLocation}>
+        <Text variant='bodyMedium' style={styles.listingLocation}>
           📍 {item.location}
         </Text>
 
         <View style={styles.listingDetails}>
-          <Text variant="titleMedium" style={styles.priceText}>
+          <Text variant='titleMedium' style={styles.priceText}>
             ${item.price}/month
           </Text>
-          <Text variant="bodyMedium" style={styles.areaText}>
+          <Text variant='bodyMedium' style={styles.areaText}>
             {item.area}m²
           </Text>
         </View>
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text variant="labelSmall" style={styles.statLabel}>
+            <Text variant='labelSmall' style={styles.statLabel}>
               Views
             </Text>
-            <Text variant="bodyMedium" style={styles.statValue}>
+            <Text variant='bodyMedium' style={styles.statValue}>
               {item.views}
             </Text>
           </View>
           <View style={styles.statItem}>
-            <Text variant="labelSmall" style={styles.statLabel}>
+            <Text variant='labelSmall' style={styles.statLabel}>
               Applicants
             </Text>
-            <Text variant="bodyMedium" style={styles.statValue}>
+            <Text variant='bodyMedium' style={styles.statValue}>
               {item.applicants}
             </Text>
           </View>
@@ -165,12 +165,12 @@ export default function AllListingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title="All Listings" />
+      <BackButton title='All Listings' />
 
       <View style={styles.content}>
         {/* Search Bar */}
         <Searchbar
-          placeholder="Search listings..."
+          placeholder='Search listings...'
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchBar}
@@ -192,7 +192,7 @@ export default function AllListingsScreen() {
 
         {/* Results Header */}
         <View style={styles.resultsHeader}>
-          <Text variant="titleMedium" style={styles.resultsText}>
+          <Text variant='titleMedium' style={styles.resultsText}>
             {filteredListings.length} listings found
           </Text>
         </View>
@@ -208,10 +208,10 @@ export default function AllListingsScreen() {
 
         {/* Create Listing FAB */}
         <FAB
-          icon="plus"
+          icon='plus'
           style={styles.fab}
           onPress={handleCreateListing}
-          label="New Listing"
+          label='New Listing'
         />
       </View>
     </SafeAreaView>
@@ -221,7 +221,7 @@ export default function AllListingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   content: {
     flex: 1,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   filterContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 16,
     gap: 8,
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   resultsText: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   listContainer: {
     paddingBottom: 80,
@@ -258,22 +258,22 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   listingTitle: {
     flex: 1,
     marginRight: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   statusChip: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   statusText: {
-    color: "white",
-    fontWeight: "600",
+    color: 'white',
+    fontWeight: '600',
     fontSize: 11,
   },
   listingLocation: {
@@ -281,37 +281,37 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   listingDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   priceText: {
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   areaText: {
     opacity: 0.7,
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    borderTopColor: '#e0e0e0',
   },
   statItem: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   statLabel: {
     opacity: 0.7,
   },
   statValue: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginTop: 2,
   },
   fab: {
-    position: "absolute",
+    position: 'absolute',
     margin: 16,
     right: 0,
     bottom: 0,
