@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Card,
@@ -9,9 +9,9 @@ import {
   Chip,
   List,
   useTheme,
-} from "react-native-paper";
-import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface RoommateProfile {
   id: string;
@@ -43,26 +43,26 @@ export default function RoommateProfileScreen() {
 
   // Mock profile data - in real app, fetch based on id
   const profile: RoommateProfile = {
-    id: id || "1",
-    name: "Sarah Johnson",
+    id: id || '1',
+    name: 'Sarah Johnson',
     age: 24,
-    occupation: "Software Engineer",
+    occupation: 'Software Engineer',
     bio: "I'm a clean, organized person who loves cooking and hiking. Looking for a friendly roommate to share a cozy space with. I work from home sometimes but I'm pretty quiet.",
-    photo: "sarah.jpg",
+    photo: 'sarah.jpg',
     compatibility: 92,
-    lifestyle: ["Health-conscious", "Social", "Tech-savvy"],
+    lifestyle: ['Health-conscious', 'Social', 'Tech-savvy'],
     preferences: {
       cleanliness: 9,
       socialLevel: 7,
       noiseLevel: 4,
-      guestPolicy: "Ask before inviting",
-      smokingPolicy: "No smoking",
-      petPolicy: "Cats okay",
+      guestPolicy: 'Ask before inviting',
+      smokingPolicy: 'No smoking',
+      petPolicy: 'Cats okay',
     },
-    interests: ["Hiking", "Cooking", "Reading", "Yoga", "Photography"],
-    schedule: "9-5 weekdays, flexible weekends",
-    budget: "$800-1200/month",
-    moveInDate: "Next month",
+    interests: ['Hiking', 'Cooking', 'Reading', 'Yoga', 'Photography'],
+    schedule: '9-5 weekdays, flexible weekends',
+    budget: '$800-1200/month',
+    moveInDate: 'Next month',
   };
 
   const handleConnect = () => {
@@ -74,16 +74,16 @@ export default function RoommateProfileScreen() {
   };
 
   const getCompatibilityColor = (score: number) => {
-    if (score >= 90) return "#4CAF50";
-    if (score >= 80) return "#FF9800";
-    return "#F44336";
+    if (score >= 90) return '#4CAF50';
+    if (score >= 80) return '#FF9800';
+    return '#F44336';
   };
 
   const renderPreferenceItem = (label: string, value: string | number) => (
     <List.Item
       title={label}
-      description={typeof value === "number" ? `${value}/10` : value}
-      left={(props) => <List.Icon {...props} icon="check-circle" />}
+      description={typeof value === 'number' ? `${value}/10` : value}
+      left={(props) => <List.Icon {...props} icon='check-circle' />}
     />
   );
 
@@ -93,15 +93,15 @@ export default function RoommateProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <IconButton
-            icon="arrow-left"
+            icon='arrow-left'
             size={24}
             onPress={() => router.back()}
           />
-          <Text variant="titleLarge" style={styles.headerTitle}>
+          <Text variant='titleLarge' style={styles.headerTitle}>
             Roommate Profile
           </Text>
           <IconButton
-            icon={isFavorite ? "heart" : "heart-outline"}
+            icon={isFavorite ? 'heart' : 'heart-outline'}
             size={24}
             iconColor={isFavorite ? theme.colors.error : undefined}
             onPress={handleFavorite}
@@ -115,21 +115,21 @@ export default function RoommateProfileScreen() {
               <Avatar.Text
                 size={80}
                 label={profile.name
-                  .split(" ")
+                  .split(' ')
                   .map((n) => n[0])
-                  .join("")}
+                  .join('')}
                 style={styles.avatar}
               />
               <View style={styles.profileInfo}>
-                <Text variant="headlineSmall" style={styles.name}>
+                <Text variant='headlineSmall' style={styles.name}>
                   {profile.name}
                 </Text>
-                <Text variant="bodyLarge" style={styles.ageOccupation}>
+                <Text variant='bodyLarge' style={styles.ageOccupation}>
                   {profile.age} • {profile.occupation}
                 </Text>
                 <View style={styles.compatibilityContainer}>
                   <Text
-                    variant="titleMedium"
+                    variant='titleMedium'
                     style={[
                       styles.compatibility,
                       { color: getCompatibilityColor(profile.compatibility) },
@@ -141,7 +141,7 @@ export default function RoommateProfileScreen() {
               </View>
             </View>
 
-            <Text variant="bodyMedium" style={styles.bio}>
+            <Text variant='bodyMedium' style={styles.bio}>
               {profile.bio}
             </Text>
 
@@ -159,37 +159,37 @@ export default function RoommateProfileScreen() {
         {/* Living Preferences */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Living Preferences
             </Text>
             {renderPreferenceItem(
-              "Cleanliness Level",
-              profile.preferences.cleanliness
+              'Cleanliness Level',
+              profile.preferences.cleanliness,
             )}
             {renderPreferenceItem(
-              "Social Level",
-              profile.preferences.socialLevel
+              'Social Level',
+              profile.preferences.socialLevel,
             )}
             {renderPreferenceItem(
-              "Noise Tolerance",
-              profile.preferences.noiseLevel
+              'Noise Tolerance',
+              profile.preferences.noiseLevel,
             )}
             {renderPreferenceItem(
-              "Guest Policy",
-              profile.preferences.guestPolicy
+              'Guest Policy',
+              profile.preferences.guestPolicy,
             )}
             {renderPreferenceItem(
-              "Smoking Policy",
-              profile.preferences.smokingPolicy
+              'Smoking Policy',
+              profile.preferences.smokingPolicy,
             )}
-            {renderPreferenceItem("Pet Policy", profile.preferences.petPolicy)}
+            {renderPreferenceItem('Pet Policy', profile.preferences.petPolicy)}
           </Card.Content>
         </Card>
 
         {/* Interests */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Interests & Hobbies
             </Text>
             <View style={styles.interestsContainer}>
@@ -197,7 +197,7 @@ export default function RoommateProfileScreen() {
                 <Chip
                   key={interest}
                   style={styles.interestChip}
-                  mode="outlined"
+                  mode='outlined'
                 >
                   {interest}
                 </Chip>
@@ -209,23 +209,23 @@ export default function RoommateProfileScreen() {
         {/* Additional Info */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               Additional Information
             </Text>
             <List.Item
-              title="Schedule"
+              title='Schedule'
               description={profile.schedule}
-              left={(props) => <List.Icon {...props} icon="clock" />}
+              left={(props) => <List.Icon {...props} icon='clock' />}
             />
             <List.Item
-              title="Budget Range"
+              title='Budget Range'
               description={profile.budget}
-              left={(props) => <List.Icon {...props} icon="currency-usd" />}
+              left={(props) => <List.Icon {...props} icon='currency-usd' />}
             />
             <List.Item
-              title="Move-in Date"
+              title='Move-in Date'
               description={profile.moveInDate}
-              left={(props) => <List.Icon {...props} icon="calendar" />}
+              left={(props) => <List.Icon {...props} icon='calendar' />}
             />
           </Card.Content>
         </Card>
@@ -233,14 +233,14 @@ export default function RoommateProfileScreen() {
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <Button
-            mode="outlined"
+            mode='outlined'
             style={styles.actionButton}
             onPress={() => router.back()}
           >
             Back to Results
           </Button>
           <Button
-            mode="contained"
+            mode='contained'
             style={styles.actionButton}
             onPress={handleConnect}
           >
@@ -255,25 +255,25 @@ export default function RoommateProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     paddingBottom: 20,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
-    fontWeight: "600",
+    textAlign: 'center',
+    fontWeight: '600',
   },
   profileCard: {
     margin: 16,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   profileHeader: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 16,
   },
   avatar: {
@@ -291,10 +291,10 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   name: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
   },
   ageOccupation: {
@@ -302,19 +302,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   compatibilityContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   compatibility: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   bio: {
     marginBottom: 16,
     lineHeight: 22,
   },
   lifestyleContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   lifestyleChip: {
@@ -326,18 +326,18 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   interestsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   interestChip: {
     marginBottom: 4,
   },
   actionButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 16,
     gap: 12,
     marginTop: 8,

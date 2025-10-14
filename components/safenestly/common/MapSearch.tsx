@@ -17,7 +17,7 @@ import {
   Text,
   TextInput,
 } from 'react-native-paper';
-import { searchLocation, type LocationApiResponse } from '../../../utils/maps';
+import { searchLocation, type LocationApiResponse } from '@/utils/maps';
 
 type UiPlace = {
   id: string;
@@ -39,7 +39,7 @@ export type MapSearchProps = {
 };
 
 export function MapSearch({
-  initialQuery = 'Ho Chi Minh City',
+  initialQuery = 'Thành phố Đà Nẵng, Việt Nam',
   style,
   showSearchBar = true,
   enableSearchAreaButton = false,

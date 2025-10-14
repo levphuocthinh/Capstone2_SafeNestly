@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, FlatList } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import {
   Text,
   Searchbar,
@@ -8,9 +8,9 @@ import {
   Chip,
   Avatar,
   FAB,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Room {
   id: string;
@@ -34,70 +34,70 @@ interface Room {
 
 const mockRooms: Room[] = [
   {
-    id: "1",
-    title: "Cozy Downtown Apartment",
+    id: '1',
+    title: 'Cozy Downtown Apartment',
     price: 1200,
-    location: "Downtown, City Center",
+    location: 'Downtown, City Center',
     area: 45,
     images: [
-      "https://via.placeholder.com/300x200/6200ee/ffffff?text=Modern+Apt",
+      'https://via.placeholder.com/300x200/6200ee/ffffff?text=Modern+Apt',
     ],
-    amenities: ["WiFi", "Kitchen", "Air Conditioning", "Parking", "Gym Access"],
+    amenities: ['WiFi', 'Kitchen', 'Air Conditioning', 'Parking', 'Gym Access'],
     saved: false,
     rating: 4.8,
     reviewCount: 23,
     landlord: {
-      name: "Sarah Wilson",
+      name: 'Sarah Wilson',
       verified: true,
     },
-    availableFrom: "Available Now",
-    roomType: "1 Bedroom",
+    availableFrom: 'Available Now',
+    roomType: '1 Bedroom',
     distanceToCenter: 0.8,
   },
   {
-    id: "2",
-    title: "Modern Studio Near University",
+    id: '2',
+    title: 'Modern Studio Near University',
     price: 800,
-    location: "University District",
+    location: 'University District',
     area: 35,
-    images: ["https://via.placeholder.com/300x200/4CAF50/ffffff?text=Studio"],
-    amenities: ["WiFi", "Gym", "Parking", "Study Area", "Laundry"],
+    images: ['https://via.placeholder.com/300x200/4CAF50/ffffff?text=Studio'],
+    amenities: ['WiFi', 'Gym', 'Parking', 'Study Area', 'Laundry'],
     saved: true,
     rating: 4.6,
     reviewCount: 18,
     landlord: {
-      name: "Mike Chen",
+      name: 'Mike Chen',
       verified: true,
     },
-    availableFrom: "Available Dec 1",
-    roomType: "Studio",
+    availableFrom: 'Available Dec 1',
+    roomType: 'Studio',
     distanceToCenter: 2.1,
   },
   {
-    id: "3",
-    title: "Spacious Shared Room",
+    id: '3',
+    title: 'Spacious Shared Room',
     price: 650,
-    location: "Sunset District",
+    location: 'Sunset District',
     area: 28,
     images: [
-      "https://via.placeholder.com/300x200/FF9800/ffffff?text=Shared+Room",
+      'https://via.placeholder.com/300x200/FF9800/ffffff?text=Shared+Room',
     ],
-    amenities: ["WiFi", "Kitchen", "Garden", "Pet Friendly"],
+    amenities: ['WiFi', 'Kitchen', 'Garden', 'Pet Friendly'],
     saved: false,
     rating: 4.4,
     reviewCount: 12,
     landlord: {
-      name: "Alex Johnson",
+      name: 'Alex Johnson',
       verified: false,
     },
-    availableFrom: "Available Jan 15",
-    roomType: "Shared Room",
+    availableFrom: 'Available Jan 15',
+    roomType: 'Shared Room',
     distanceToCenter: 3.5,
   },
 ];
 
 export default function TenantHomeScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [rooms, setRooms] = useState(mockRooms);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
@@ -117,17 +117,17 @@ export default function TenantHomeScreen() {
   const handleSaveRoom = (roomId: string) => {
     setRooms((prev) =>
       prev.map((room) =>
-        room.id === roomId ? { ...room, saved: !room.saved } : room
-      )
+        room.id === roomId ? { ...room, saved: !room.saved } : room,
+      ),
     );
   };
 
   const handleFilterPress = () => {
-    router.push("./advanced-filters");
+    router.push('./advanced-filters');
   };
 
   const handleMapView = () => {
-    router.push("./map");
+    router.push('./map');
   };
 
   const renderRoomCard = ({ item }: { item: Room }) => (
@@ -135,28 +135,28 @@ export default function TenantHomeScreen() {
       <Card.Cover source={{ uri: item.images[0] }} style={styles.cardImage} />
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <Text variant="titleMedium" style={styles.roomTitle}>
+          <Text variant='titleMedium' style={styles.roomTitle}>
             {item.title}
           </Text>
           <Button
-            mode="text"
-            icon={item.saved ? "heart" : "heart-outline"}
+            mode='text'
+            icon={item.saved ? 'heart' : 'heart-outline'}
             onPress={() => handleSaveRoom(item.id)}
             style={styles.saveButton}
           >
-            {item.saved ? "Saved" : "Save"}
+            {item.saved ? 'Saved' : 'Save'}
           </Button>
         </View>
 
-        <Text variant="bodyMedium" style={styles.roomLocation}>
+        <Text variant='bodyMedium' style={styles.roomLocation}>
           {item.location}
         </Text>
 
         <View style={styles.roomDetails}>
-          <Text variant="headlineSmall" style={styles.priceText}>
+          <Text variant='headlineSmall' style={styles.priceText}>
             ${item.price}/month
           </Text>
-          <Text variant="bodyMedium" style={styles.areaText}>
+          <Text variant='bodyMedium' style={styles.areaText}>
             {item.area}m² • {item.roomType}
           </Text>
         </View>
@@ -204,18 +204,18 @@ export default function TenantHomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.userInfo}>
-            <Avatar.Icon size={40} icon="account" />
+            <Avatar.Icon size={40} icon='account' />
             <View style={styles.userText}>
               <Text style={styles.greeting}>Good morning!</Text>
-              <Text variant="headlineMedium" style={styles.userName}>
+              <Text variant='headlineMedium' style={styles.userName}>
                 Find your perfect room
               </Text>
             </View>
           </View>
           <Button
-            mode="text"
-            icon="account-circle"
-            onPress={() => router.push("/(tenant)/profile")}
+            mode='text'
+            icon='account-circle'
+            onPress={() => router.push('/(tenant)/profile')}
           >
             Profile
           </Button>
@@ -224,26 +224,26 @@ export default function TenantHomeScreen() {
         {/* Search Section */}
         <View style={styles.searchSection}>
           <Searchbar
-            placeholder="Search by city, address..."
+            placeholder='Search by city, address...'
             onChangeText={handleSearch}
             value={searchQuery}
             style={styles.searchBar}
-            icon="map-marker"
+            icon='map-marker'
             onIconPress={handleMapView}
           />
 
           <View style={styles.searchActions}>
             <Button
-              mode="outlined"
-              icon="filter-variant"
+              mode='outlined'
+              icon='filter-variant'
               onPress={handleFilterPress}
               style={styles.filterButton}
             >
               Filters
             </Button>
             <Button
-              mode="contained"
-              icon="map"
+              mode='contained'
+              icon='map'
               onPress={handleMapView}
               style={styles.mapButton}
             >
@@ -274,22 +274,22 @@ export default function TenantHomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
+          <Text variant='titleLarge' style={styles.sectionTitle}>
             Quick Actions
           </Text>
           <View style={styles.actionButtons}>
             <Button
-              mode="contained-tonal"
-              icon="account-multiple"
-              onPress={() => router.push("/(tenant)/roommate-matching")}
+              mode='contained-tonal'
+              icon='account-multiple'
+              onPress={() => router.push('/(tenant)/roommate-matching')}
               style={styles.actionButton}
             >
               Find Roommate
             </Button>
             <Button
-              mode="contained-tonal"
-              icon="heart"
-              onPress={() => router.push("/(tenant)/favorites")}
+              mode='contained-tonal'
+              icon='heart'
+              onPress={() => router.push('/(tenant)/favorites')}
               style={styles.actionButton}
             >
               Saved Rooms
@@ -299,7 +299,7 @@ export default function TenantHomeScreen() {
 
         {/* Recommended Rooms */}
         <View style={styles.roomsSection}>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
+          <Text variant='titleLarge' style={styles.sectionTitle}>
             Recommended for You
           </Text>
           <FlatList
@@ -314,10 +314,10 @@ export default function TenantHomeScreen() {
 
       {/* Floating Action Button */}
       <FAB
-        icon="plus"
+        icon='plus'
         style={styles.fab}
         onPress={handleFilterPress}
-        label="New Search"
+        label='New Search'
       />
     </SafeAreaView>
   );
@@ -326,21 +326,21 @@ export default function TenantHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   userInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
   userText: {
@@ -353,11 +353,11 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   searchSection: {
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     marginBottom: 10,
   },
   searchBar: {
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   searchActions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   filterButton: {
@@ -376,16 +376,16 @@ const styles = StyleSheet.create({
   },
   filtersContainer: {
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     marginBottom: 10,
   },
   filtersTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   filterChips: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   filterChip: {
@@ -393,16 +393,16 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 16,
   },
   actionButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   actionButton: {
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
   },
   roomsSection: {
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   roomCard: {
     marginBottom: 16,
@@ -423,14 +423,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   roomTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
@@ -444,29 +444,29 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   roomDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   priceText: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   areaText: {
     fontSize: 14,
     opacity: 0.7,
   },
   ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
     gap: 8,
   },
   ratingText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   reviewText: {
     fontSize: 12,
@@ -474,27 +474,27 @@ const styles = StyleSheet.create({
   },
   verifiedText: {
     fontSize: 12,
-    color: "#4CAF50",
-    fontWeight: "500",
+    color: '#4CAF50',
+    fontWeight: '500',
   },
   infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
   availabilityText: {
     fontSize: 12,
-    color: "#6200ee",
-    fontWeight: "500",
+    color: '#6200ee',
+    fontWeight: '500',
   },
   distanceText: {
     fontSize: 12,
     opacity: 0.7,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 6,
   },
   amenityChip: {
@@ -504,10 +504,10 @@ const styles = StyleSheet.create({
   moreAmenities: {
     fontSize: 12,
     opacity: 0.7,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   fab: {
-    position: "absolute",
+    position: 'absolute',
     margin: 16,
     right: 0,
     bottom: 0,

@@ -1,6 +1,6 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Text, Card, Button, Chip } from "react-native-paper";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Text, Card, Button, Chip } from 'react-native-paper';
 
 interface RoomCardProps {
   id: string;
@@ -38,22 +38,22 @@ export function RoomCard({
       <Card.Cover source={{ uri: image }} style={styles.image} />
       <Card.Content style={styles.content}>
         <View style={styles.header}>
-          <Text variant="titleMedium" style={styles.title}>
+          <Text variant='titleMedium' style={styles.title}>
             {title}
           </Text>
           {showSaveButton && onSave && (
             <Button
-              mode="text"
-              icon={saved ? "heart" : "heart-outline"}
+              mode='text'
+              icon={saved ? 'heart' : 'heart-outline'}
               onPress={() => onSave(id)}
               style={styles.saveButton}
             >
-              {saved ? "Saved" : "Save"}
+              {saved ? 'Saved' : 'Save'}
             </Button>
           )}
         </View>
 
-        <Text variant="bodyMedium" style={styles.location}>
+        <Text variant='bodyMedium' style={styles.location}>
           {location}
         </Text>
 
@@ -77,10 +77,10 @@ export function RoomCard({
 
         {showContactButton && onContact && (
           <Button
-            mode="contained"
+            mode='contained'
             onPress={() => onContact(id)}
             style={styles.contactButton}
-            icon="message"
+            icon='message'
           >
             Contact
           </Button>
@@ -102,14 +102,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
   title: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     flex: 1,
     marginRight: 8,
   },
@@ -123,24 +123,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   details: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   price: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   area: {
     fontSize: 14,
     opacity: 0.7,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 6,
     marginBottom: 12,
   },
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   moreAmenities: {
     fontSize: 12,
     opacity: 0.7,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   contactButton: {
     marginTop: 8,

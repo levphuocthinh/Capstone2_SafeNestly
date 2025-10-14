@@ -37,7 +37,9 @@ export async function searchLocation(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true',
+      ...(process.env.NODE_ENV === 'development'
+        ? { 'ngrok-skip-browser-warning': 'true' }
+        : {}),
     },
     body: JSON.stringify({ address }),
     signal,

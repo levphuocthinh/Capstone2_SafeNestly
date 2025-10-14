@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Alert, Dimensions } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
 import {
   Text,
   TextInput,
@@ -8,27 +8,27 @@ import {
   Divider,
   useTheme,
   Chip,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   authenticateUser,
   getHomeRouteForRole,
   getTestAccounts,
-} from "../../utils/auth";
+} from '../../utils/auth';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("Error", "Please enter both email and password");
+      Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
@@ -40,22 +40,22 @@ export default function LoginScreen() {
         const homeRoute = getHomeRouteForRole(result.user.role);
         router.replace(homeRoute as any);
       } else {
-        Alert.alert("Login Failed", result.error || "Invalid credentials");
+        Alert.alert('Login Failed', result.error || 'Invalid credentials');
       }
     } catch (error) {
-      console.error("Login error:", error);
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handlePhoneLogin = () => {
-    router.push("/(auth)/phone-login");
+    router.push('/(auth)/phone-login');
   };
 
   const handleRegister = () => {
-    router.push("/(auth)/register");
+    router.push('/(auth)/register');
   };
 
   return (
@@ -68,16 +68,16 @@ export default function LoginScreen() {
               <Text style={styles.logoIcon}>🏠</Text>
             </View>
             <Text
-              variant="headlineLarge"
+              variant='headlineLarge'
               style={[styles.title, { color: theme.colors.primary }]}
             >
               SafeNestly
             </Text>
           </View>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant='bodyLarge' style={styles.subtitle}>
             Your trusted platform for safe room rentals
           </Text>
-          <Text variant="bodyMedium" style={styles.tagline}>
+          <Text variant='bodyMedium' style={styles.tagline}>
             🛡️ Verified Properties • 🤝 Smart Roommate Matching • 📍 Safe
             Neighborhoods
           </Text>
@@ -87,39 +87,39 @@ export default function LoginScreen() {
         <Card style={styles.card} elevation={5}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardHeader}>
-              <Text variant="headlineSmall" style={styles.cardTitle}>
+              <Text variant='headlineSmall' style={styles.cardTitle}>
                 Welcome Back
               </Text>
-              <Text variant="bodyMedium" style={styles.cardSubtitle}>
+              <Text variant='bodyMedium' style={styles.cardSubtitle}>
                 Sign in to continue your safe housing journey
               </Text>
             </View>
 
             <View style={styles.inputContainer}>
               <TextInput
-                label="Email Address"
+                label='Email Address'
                 value={email}
                 onChangeText={setEmail}
-                mode="outlined"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                left={<TextInput.Icon icon="email-outline" />}
+                mode='outlined'
+                keyboardType='email-address'
+                autoCapitalize='none'
+                autoComplete='email'
+                left={<TextInput.Icon icon='email-outline' />}
                 style={styles.input}
                 contentStyle={styles.inputContent}
               />
 
               <TextInput
-                label="Password"
+                label='Password'
                 value={password}
                 onChangeText={setPassword}
-                mode="outlined"
+                mode='outlined'
                 secureTextEntry={!showPassword}
-                autoComplete="password"
-                left={<TextInput.Icon icon="lock-outline" />}
+                autoComplete='password'
+                left={<TextInput.Icon icon='lock-outline' />}
                 right={
                   <TextInput.Icon
-                    icon={showPassword ? "eye-off-outline" : "eye-outline"}
+                    icon={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     onPress={() => setShowPassword(!showPassword)}
                   />
                 }
@@ -129,7 +129,7 @@ export default function LoginScreen() {
             </View>
 
             <Button
-              mode="contained"
+              mode='contained'
               onPress={handleLogin}
               loading={loading}
               disabled={!email || !password}
@@ -137,7 +137,7 @@ export default function LoginScreen() {
               contentStyle={styles.buttonContent}
               labelStyle={styles.buttonLabel}
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? 'Signing In...' : 'Sign In'}
             </Button>
 
             <View style={styles.dividerContainer}>
@@ -147,9 +147,9 @@ export default function LoginScreen() {
             </View>
 
             <Button
-              mode="outlined"
+              mode='outlined'
               onPress={handlePhoneLogin}
-              icon="phone-outline"
+              icon='phone-outline'
               style={styles.phoneButton}
               contentStyle={styles.buttonContent}
               labelStyle={styles.secondaryButtonLabel}
@@ -159,7 +159,7 @@ export default function LoginScreen() {
 
             {/* Quick Access Info */}
             <View style={styles.quickAccessInfo}>
-              <Text variant="bodySmall" style={styles.quickAccessText}>
+              <Text variant='bodySmall' style={styles.quickAccessText}>
                 💡 Quick Access: Use test accounts below for instant demo
               </Text>
             </View>
@@ -170,10 +170,10 @@ export default function LoginScreen() {
         <Card style={styles.testAccountsCard} elevation={4}>
           <Card.Content>
             <View style={styles.testAccountsHeader}>
-              <Text variant="titleLarge" style={styles.testAccountsTitle}>
+              <Text variant='titleLarge' style={styles.testAccountsTitle}>
                 🚀 Demo Accounts
               </Text>
-              <Text variant="bodyMedium" style={styles.testAccountsSubtitle}>
+              <Text variant='bodyMedium' style={styles.testAccountsSubtitle}>
                 Experience different user roles instantly
               </Text>
             </View>
@@ -181,12 +181,12 @@ export default function LoginScreen() {
             {getTestAccounts().map((account, index) => {
               const getRoleColor = (role: string) => {
                 switch (role) {
-                  case "tenant":
-                    return "#E3F2FD";
-                  case "landlord":
-                    return "#E8F5E8";
+                  case 'tenant':
+                    return '#E3F2FD';
+                  case 'landlord':
+                    return '#E8F5E8';
                   default:
-                    return "#FFF3E0";
+                    return '#FFF3E0';
                 }
               };
 
@@ -195,7 +195,7 @@ export default function LoginScreen() {
                   <View style={styles.testAccountContent}>
                     <View style={styles.testAccountHeader}>
                       <Chip
-                        mode="outlined"
+                        mode='outlined'
                         compact
                         style={[
                           styles.roleChip,
@@ -205,13 +205,13 @@ export default function LoginScreen() {
                       >
                         {account.role.toUpperCase()}
                       </Chip>
-                      <Text variant="titleMedium" style={styles.accountName}>
+                      <Text variant='titleMedium' style={styles.accountName}>
                         {account.name}
                       </Text>
                     </View>
 
                     <Text
-                      variant="bodyMedium"
+                      variant='bodyMedium'
                       style={styles.accountDescription}
                     >
                       {account.description}
@@ -233,7 +233,7 @@ export default function LoginScreen() {
                     </View>
 
                     <Button
-                      mode="contained-tonal"
+                      mode='contained-tonal'
                       compact
                       onPress={() => {
                         setEmail(account.email);
@@ -241,7 +241,7 @@ export default function LoginScreen() {
                       }}
                       style={styles.useAccountButton}
                       contentStyle={styles.useAccountButtonContent}
-                      icon="account-arrow-right"
+                      icon='account-arrow-right'
                     >
                       Use Account
                     </Button>
@@ -256,7 +256,7 @@ export default function LoginScreen() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>New to SafeNestly? </Text>
           <Button
-            mode="text"
+            mode='text'
             onPress={handleRegister}
             compact
             labelStyle={styles.footerButtonLabel}
@@ -267,27 +267,27 @@ export default function LoginScreen() {
 
         {/* Guest Access Option */}
         <View style={styles.guestAccessSection}>
-          <Text variant="bodyMedium" style={styles.guestAccessText}>
+          <Text variant='bodyMedium' style={styles.guestAccessText}>
             Want to browse without signing up?
           </Text>
           <Button
-            mode="outlined"
-            onPress={() => router.push("/(guest)/home")}
-            icon="eye-outline"
+            mode='outlined'
+            onPress={() => router.push('/(guest)/home')}
+            icon='eye-outline'
             style={styles.guestAccessButton}
             contentStyle={styles.guestAccessButtonContent}
             labelStyle={styles.guestAccessButtonLabel}
           >
             Browse as Guest
           </Button>
-          <Text variant="bodySmall" style={styles.guestAccessNote}>
+          <Text variant='bodySmall' style={styles.guestAccessNote}>
             Limited access • Sign up for full features
           </Text>
         </View>
 
         {/* Additional Features Info */}
         <View style={styles.featuresInfo}>
-          <Text variant="bodySmall" style={styles.featuresText}>
+          <Text variant='bodySmall' style={styles.featuresText}>
             ✨ AI-Powered Roommate Matching • 🔒 Verified Properties • 📱
             Real-time Chat
           </Text>
@@ -300,53 +300,53 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fafafa",
+    backgroundColor: '#fafafa',
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: 24,
   },
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 40,
   },
   logoContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 16,
   },
   logoCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#6200ee",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#6200ee',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
     elevation: 8,
-    shadowColor: "#6200ee",
+    shadowColor: '#6200ee',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
   logoIcon: {
     fontSize: 40,
-    color: "white",
+    color: 'white',
   },
   title: {
     fontSize: 36,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 18,
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.8,
     marginBottom: 8,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   tagline: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     fontSize: 14,
     paddingHorizontal: 20,
@@ -355,24 +355,24 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: 24,
     borderRadius: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   cardContent: {
     padding: 24,
   },
   cardHeader: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 32,
   },
   cardTitle: {
     fontSize: 28,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     marginBottom: 8,
-    color: "#1a1a1a",
+    color: '#1a1a1a',
   },
   cardSubtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     fontSize: 16,
     lineHeight: 22,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 20,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   inputContent: {
     fontSize: 16,
@@ -398,12 +398,12 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
   dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
   },
   divider: {
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     opacity: 0.7,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   phoneButton: {
     marginBottom: 16,
@@ -423,52 +423,52 @@ const styles = StyleSheet.create({
   },
   secondaryButtonLabel: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   quickAccessInfo: {
-    backgroundColor: "#f0f4ff",
+    backgroundColor: '#f0f4ff',
     padding: 16,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
   quickAccessText: {
     opacity: 0.8,
     fontSize: 13,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 18,
   },
   testAccountsCard: {
     marginBottom: 24,
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     borderRadius: 16,
   },
   testAccountsHeader: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 20,
   },
   testAccountsTitle: {
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 8,
-    fontWeight: "700",
-    color: "#1a1a1a",
+    fontWeight: '700',
+    color: '#1a1a1a',
   },
   testAccountsSubtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     lineHeight: 20,
   },
   testAccountItem: {
     marginBottom: 20,
     borderRadius: 12,
-    backgroundColor: "#fafafa",
-    overflow: "hidden",
+    backgroundColor: '#fafafa',
+    overflow: 'hidden',
   },
   testAccountContent: {
     padding: 20,
   },
   testAccountHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
   },
   roleChip: {
@@ -477,10 +477,10 @@ const styles = StyleSheet.create({
   },
   roleChipText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   accountName: {
-    fontWeight: "600",
+    fontWeight: '600',
     flex: 1,
     fontSize: 16,
   },
@@ -491,46 +491,46 @@ const styles = StyleSheet.create({
   },
   credentialsContainer: {
     marginBottom: 16,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
     padding: 12,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: "#6200ee",
+    borderLeftColor: '#6200ee',
   },
   credentialItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
   credentialLabel: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: '600',
     opacity: 0.7,
     minWidth: 70,
   },
   credentialValue: {
     fontSize: 13,
-    fontFamily: "monospace",
-    backgroundColor: "white",
+    fontFamily: 'monospace',
+    backgroundColor: 'white',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
     flex: 1,
     marginLeft: 12,
-    textAlign: "right",
+    textAlign: 'right',
   },
   useAccountButton: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     borderRadius: 8,
   },
   useAccountButtonContent: {
     paddingHorizontal: 8,
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
   },
   footerText: {
@@ -539,34 +539,34 @@ const styles = StyleSheet.create({
   },
   footerButtonLabel: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   featuresInfo: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   featuresText: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.6,
     lineHeight: 18,
   },
   guestAccessSection: {
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 16,
     paddingVertical: 20,
     paddingHorizontal: 24,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
     borderRadius: 12,
     marginHorizontal: 8,
   },
   guestAccessText: {
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 12,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   guestAccessButton: {
     borderRadius: 8,
-    borderColor: "#6200ee",
+    borderColor: '#6200ee',
     borderWidth: 1.5,
   },
   guestAccessButtonContent: {
@@ -575,12 +575,12 @@ const styles = StyleSheet.create({
   },
   guestAccessButtonLabel: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   guestAccessNote: {
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 8,
     opacity: 0.6,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
 });

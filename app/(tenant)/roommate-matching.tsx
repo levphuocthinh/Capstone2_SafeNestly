@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
 import {
   Text,
   Card,
@@ -8,9 +8,9 @@ import {
   Avatar,
   ProgressBar,
   Searchbar,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Roommate {
   id: string;
@@ -28,38 +28,38 @@ interface Roommate {
 
 const mockRoommates: Roommate[] = [
   {
-    id: "1",
-    name: "Sarah Johnson",
+    id: '1',
+    name: 'Sarah Johnson',
     age: 24,
-    occupation: "Software Engineer",
-    hometown: "Los Angeles",
-    avatar: "https://via.placeholder.com/100x100",
+    occupation: 'Software Engineer',
+    hometown: 'Los Angeles',
+    avatar: 'https://via.placeholder.com/100x100',
     compatibilityRate: 92,
-    habits: ["Non-smoker", "Early bird", "Fitness enthusiast"],
-    lifestyle: ["Modern & Tech-savvy", "Minimalist & Clean"],
+    habits: ['Non-smoker', 'Early bird', 'Fitness enthusiast'],
+    lifestyle: ['Modern & Tech-savvy', 'Minimalist & Clean'],
     description:
-      "I love coding, hiking, and cooking healthy meals. Looking for a clean and quiet roommate.",
-    city: "San Francisco",
+      'I love coding, hiking, and cooking healthy meals. Looking for a clean and quiet roommate.',
+    city: 'San Francisco',
   },
   {
-    id: "2",
-    name: "Mike Chen",
+    id: '2',
+    name: 'Mike Chen',
     age: 26,
-    occupation: "Graphic Designer",
-    hometown: "Seattle",
-    avatar: "https://via.placeholder.com/100x100",
+    occupation: 'Graphic Designer',
+    hometown: 'Seattle',
+    avatar: 'https://via.placeholder.com/100x100',
     compatibilityRate: 87,
-    habits: ["Non-smoker", "Night owl", "Social person"],
-    lifestyle: ["Social & Outgoing", "Modern & Tech-savvy"],
+    habits: ['Non-smoker', 'Night owl', 'Social person'],
+    lifestyle: ['Social & Outgoing', 'Modern & Tech-savvy'],
     description:
-      "Creative professional who enjoys good music, movies, and meeting new people.",
-    city: "San Francisco",
+      'Creative professional who enjoys good music, movies, and meeting new people.',
+    city: 'San Francisco',
   },
 ];
 
 export default function RoommateMatchingScreen() {
   const [roommates] = useState(mockRoommates);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleRoommatePress = (roommateId: string) => {
     router.push(`./roommate-profile/${roommateId}`);
@@ -73,20 +73,20 @@ export default function RoommateMatchingScreen() {
   };
 
   const handleUpdatePreferences = () => {
-    router.push("./roommate-preferences");
+    router.push('./roommate-preferences');
   };
 
   const filteredRoommates = roommates.filter(
     (roommate) =>
       roommate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       roommate.occupation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      roommate.hometown.toLowerCase().includes(searchQuery.toLowerCase())
+      roommate.hometown.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getCompatibilityColor = (rate: number) => {
-    if (rate >= 90) return "#4CAF50";
-    if (rate >= 75) return "#FF9800";
-    return "#F44336";
+    if (rate >= 90) return '#4CAF50';
+    if (rate >= 75) return '#FF9800';
+    return '#F44336';
   };
 
   const renderRoommateCard = ({ item }: { item: Roommate }) => (
@@ -120,7 +120,7 @@ export default function RoommateMatchingScreen() {
             style={styles.avatar}
           />
           <View style={styles.profileInfo}>
-            <Text variant="titleMedium" style={styles.roommateeName}>
+            <Text variant='titleMedium' style={styles.roommateeName}>
               {item.name}
             </Text>
             <Text style={styles.ageOccupation}>
@@ -133,7 +133,7 @@ export default function RoommateMatchingScreen() {
         </View>
 
         {/* Description */}
-        <Text variant="bodyMedium" style={styles.description} numberOfLines={2}>
+        <Text variant='bodyMedium' style={styles.description} numberOfLines={2}>
           {item.description}
         </Text>
 
@@ -168,10 +168,10 @@ export default function RoommateMatchingScreen() {
 
         {/* Connect Button */}
         <Button
-          mode="contained"
+          mode='contained'
           onPress={() => handleConnect(item.id)}
           style={styles.connectButton}
-          icon="message"
+          icon='message'
         >
           Connect
         </Button>
@@ -183,24 +183,24 @@ export default function RoommateMatchingScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Button
-          mode="text"
-          icon="arrow-left"
+          mode='text'
+          icon='arrow-left'
           onPress={() => router.back()}
           style={styles.backButton}
         >
           Back
         </Button>
-        <Text variant="headlineSmall" style={styles.headerTitle}>
+        <Text variant='headlineSmall' style={styles.headerTitle}>
           Roommate Matching
         </Text>
-        <Button mode="text" icon="tune" onPress={handleUpdatePreferences}>
+        <Button mode='text' icon='tune' onPress={handleUpdatePreferences}>
           Preferences
         </Button>
       </View>
 
       <View style={styles.searchSection}>
         <Searchbar
-          placeholder="Search roommates..."
+          placeholder='Search roommates...'
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchBar}
@@ -217,13 +217,13 @@ export default function RoommateMatchingScreen() {
       {filteredRoommates.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>No Roommates Found</Text>
-          <Text variant="bodyMedium" style={styles.emptySubtitle}>
+          <Text variant='bodyMedium' style={styles.emptySubtitle}>
             {roommates.length === 0
-              ? "Update your preferences to find compatible roommates!"
-              : "No roommates match your search criteria."}
+              ? 'Update your preferences to find compatible roommates!'
+              : 'No roommates match your search criteria.'}
           </Text>
           <Button
-            mode="contained"
+            mode='contained'
             onPress={handleUpdatePreferences}
             style={styles.preferencesButton}
           >
@@ -246,47 +246,47 @@ export default function RoommateMatchingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     margin: 0,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   searchSection: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   searchBar: {
     marginBottom: 12,
     elevation: 1,
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   statsText: {
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   aiText: {
     fontSize: 12,
     opacity: 0.7,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   listContainer: {
     padding: 16,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   compatibilityText: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   progressBar: {
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   profileSection: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 16,
   },
   avatar: {
@@ -319,11 +319,11 @@ const styles = StyleSheet.create({
   },
   profileInfo: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   roommateeName: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 4,
   },
   ageOccupation: {
@@ -345,47 +345,47 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
     opacity: 0.8,
   },
   chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 6,
   },
   habitChip: {
-    backgroundColor: "#E3F2FD",
+    backgroundColor: '#E3F2FD',
     marginBottom: 4,
   },
   lifestyleChip: {
-    backgroundColor: "#F3E5F5",
+    backgroundColor: '#F3E5F5',
     marginBottom: 4,
   },
   moreText: {
     fontSize: 12,
     opacity: 0.7,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   connectButton: {
     marginTop: 8,
   },
   emptyState: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     marginBottom: 24,
     lineHeight: 24,

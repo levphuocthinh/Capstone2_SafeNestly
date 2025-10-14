@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Image } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import {
   Text,
   Button,
@@ -8,10 +8,10 @@ import {
   TextInput,
   useTheme,
   HelperText,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BackButton from "../../components/ui/back-button";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import BackButton from '../../components/ui/back-button';
 
 interface LifestyleOption {
   id: string;
@@ -23,78 +23,78 @@ interface LifestyleOption {
 
 const lifestyleOptions: LifestyleOption[] = [
   {
-    id: "social",
-    title: "Social & Outgoing",
-    description: "Love meeting new people and hosting gatherings",
-    icon: "🎉",
-    image: "https://via.placeholder.com/150x100/6200ee/ffffff?text=Social",
+    id: 'social',
+    title: 'Social & Outgoing',
+    description: 'Love meeting new people and hosting gatherings',
+    icon: '🎉',
+    image: 'https://via.placeholder.com/150x100/6200ee/ffffff?text=Social',
   },
   {
-    id: "quiet",
-    title: "Quiet & Private",
-    description: "Prefer peaceful environment and personal space",
-    icon: "🧘",
-    image: "https://via.placeholder.com/150x100/4CAF50/ffffff?text=Quiet",
+    id: 'quiet',
+    title: 'Quiet & Private',
+    description: 'Prefer peaceful environment and personal space',
+    icon: '🧘',
+    image: 'https://via.placeholder.com/150x100/4CAF50/ffffff?text=Quiet',
   },
   {
-    id: "modern",
-    title: "Modern & Tech-savvy",
-    description: "Enjoy latest technology and contemporary lifestyle",
-    icon: "💻",
-    image: "https://via.placeholder.com/150x100/FF9800/ffffff?text=Modern",
+    id: 'modern',
+    title: 'Modern & Tech-savvy',
+    description: 'Enjoy latest technology and contemporary lifestyle',
+    icon: '💻',
+    image: 'https://via.placeholder.com/150x100/FF9800/ffffff?text=Modern',
   },
   {
-    id: "minimalist",
-    title: "Minimalist & Clean",
-    description: "Keep things simple, organized, and clutter-free",
-    icon: "✨",
-    image: "https://via.placeholder.com/150x100/2196F3/ffffff?text=Minimal",
+    id: 'minimalist',
+    title: 'Minimalist & Clean',
+    description: 'Keep things simple, organized, and clutter-free',
+    icon: '✨',
+    image: 'https://via.placeholder.com/150x100/2196F3/ffffff?text=Minimal',
   },
 ];
 
 const cityOptions = [
-  "San Francisco",
-  "Los Angeles",
-  "New York",
-  "Seattle",
-  "Austin",
-  "Denver",
-  "Chicago",
-  "Boston",
-  "Portland",
-  "Miami",
-  "Atlanta",
-  "Other",
+  'San Francisco',
+  'Los Angeles',
+  'New York',
+  'Seattle',
+  'Austin',
+  'Denver',
+  'Chicago',
+  'Boston',
+  'Portland',
+  'Miami',
+  'Atlanta',
+  'Other',
 ];
 
 export default function ProfileSetupScreen() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [city, setCity] = useState("");
-  const [customCity, setCustomCity] = useState("");
+  const [city, setCity] = useState('');
+  const [customCity, setCustomCity] = useState('');
   const [habits, setHabits] = useState<string[]>([]);
-  const [lifestyle, setLifestyle] = useState("");
-  const [description, setDescription] = useState("");
+  const [lifestyle, setLifestyle] = useState('');
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
 
   const habitOptions = [
-    "Non-smoker",
-    "Smoker",
-    "Vegetarian",
-    "Vegan",
-    "Early bird",
-    "Night owl",
-    "Fitness enthusiast",
-    "Pet lover",
-    "Quiet person",
-    "Social person",
-    "Clean & organized",
-    "Cooking enthusiast",
+    'Non-smoker',
+    'Smoker',
+    'Vegetarian',
+    'Vegan',
+    'Early bird',
+    'Night owl',
+    'Fitness enthusiast',
+    'Pet lover',
+    'Quiet person',
+    'Social person',
+    'Clean & organized',
+    'Cooking enthusiast',
   ];
 
   const toggleHabit = (habit: string) => {
     setHabits((prev) =>
-      prev.includes(habit) ? prev.filter((h) => h !== habit) : [...prev, habit]
+      prev.includes(habit) ? prev.filter((h) => h !== habit) : [...prev, habit],
     );
   };
 
@@ -117,7 +117,7 @@ export default function ProfileSetupScreen() {
     try {
       // Save profile setup data
       const profileData = {
-        city: city === "Other" ? customCity : city,
+        city: city === 'Other' ? customCity : city,
         habits,
         lifestyle,
         description,
@@ -125,13 +125,13 @@ export default function ProfileSetupScreen() {
       };
 
       // In a real app, send to backend
-      console.log("Profile setup complete:", profileData);
+      console.log('Profile setup complete:', profileData);
 
       // Navigate to home based on user type
       // For now, navigate to tenant home
-      router.replace("/(tenant)/home");
+      router.replace('/(tenant)/home');
     } catch (error) {
-      console.error("Profile setup error:", error);
+      console.error('Profile setup error:', error);
     } finally {
       setLoading(false);
     }
@@ -155,10 +155,10 @@ export default function ProfileSetupScreen() {
   const renderCitySelection = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.stepTitle}>
+        <Text variant='headlineSmall' style={styles.stepTitle}>
           Where do you want to rent?
         </Text>
-        <Text variant="bodyMedium" style={styles.stepDescription}>
+        <Text variant='bodyMedium' style={styles.stepDescription}>
           Select the city where you're looking for a room
         </Text>
 
@@ -174,21 +174,21 @@ export default function ProfileSetupScreen() {
                   backgroundColor: theme.colors.primary,
                 },
               ]}
-              textStyle={city === cityOption ? { color: "white" } : {}}
+              textStyle={city === cityOption ? { color: 'white' } : {}}
             >
               {cityOption}
             </Chip>
           ))}
         </View>
 
-        {city === "Other" && (
+        {city === 'Other' && (
           <TextInput
-            label="Enter your city"
+            label='Enter your city'
             value={customCity}
             onChangeText={setCustomCity}
-            mode="outlined"
+            mode='outlined'
             style={styles.input}
-            placeholder="e.g., Phoenix, Nashville"
+            placeholder='e.g., Phoenix, Nashville'
           />
         )}
       </Card.Content>
@@ -198,10 +198,10 @@ export default function ProfileSetupScreen() {
   const renderHabitsSelection = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.stepTitle}>
+        <Text variant='headlineSmall' style={styles.stepTitle}>
           Your Habits & Preferences
         </Text>
-        <Text variant="bodyMedium" style={styles.stepDescription}>
+        <Text variant='bodyMedium' style={styles.stepDescription}>
           Select all that apply to help us find compatible roommates
         </Text>
 
@@ -217,7 +217,7 @@ export default function ProfileSetupScreen() {
                   backgroundColor: theme.colors.primary,
                 },
               ]}
-              textStyle={habits.includes(habit) ? { color: "white" } : {}}
+              textStyle={habits.includes(habit) ? { color: 'white' } : {}}
             >
               {habit}
             </Chip>
@@ -230,10 +230,10 @@ export default function ProfileSetupScreen() {
   const renderLifestyleSelection = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.stepTitle}>
+        <Text variant='headlineSmall' style={styles.stepTitle}>
           Your Lifestyle
         </Text>
-        <Text variant="bodyMedium" style={styles.stepDescription}>
+        <Text variant='bodyMedium' style={styles.stepDescription}>
           Choose the option that best describes your lifestyle
         </Text>
 
@@ -255,10 +255,10 @@ export default function ProfileSetupScreen() {
                   source={{ uri: option.image }}
                   style={styles.lifestyleImage}
                 />
-                <Text variant="titleMedium" style={styles.lifestyleTitle}>
+                <Text variant='titleMedium' style={styles.lifestyleTitle}>
                   {option.icon} {option.title}
                 </Text>
-                <Text variant="bodySmall" style={styles.lifestyleDescription}>
+                <Text variant='bodySmall' style={styles.lifestyleDescription}>
                   {option.description}
                 </Text>
               </Card.Content>
@@ -272,25 +272,25 @@ export default function ProfileSetupScreen() {
   const renderDescriptionInput = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.stepTitle}>
+        <Text variant='headlineSmall' style={styles.stepTitle}>
           Tell us about yourself
         </Text>
-        <Text variant="bodyMedium" style={styles.stepDescription}>
+        <Text variant='bodyMedium' style={styles.stepDescription}>
           Write a brief description to help others get to know you better
         </Text>
 
         <TextInput
-          label="About Me"
+          label='About Me'
           value={description}
           onChangeText={setDescription}
-          mode="outlined"
+          mode='outlined'
           multiline
           numberOfLines={6}
           style={styles.descriptionInput}
           placeholder="I'm a friendly person who loves cooking and outdoor activities. I'm looking for a clean, respectful roommate to share a comfortable space..."
         />
 
-        <HelperText type="info">{description.length}/300 characters</HelperText>
+        <HelperText type='info'>{description.length}/300 characters</HelperText>
       </Card.Content>
     </Card>
   );
@@ -298,7 +298,7 @@ export default function ProfileSetupScreen() {
   const canProceed = () => {
     switch (currentStep) {
       case 0:
-        return city && (city !== "Other" || customCity.trim());
+        return city && (city !== 'Other' || customCity.trim());
       case 1:
         return habits.length > 0;
       case 2:
@@ -311,21 +311,21 @@ export default function ProfileSetupScreen() {
   };
 
   const stepTitles = [
-    "City Selection",
-    "Habits & Preferences",
-    "Lifestyle Choice",
-    "Personal Description",
+    'City Selection',
+    'Habits & Preferences',
+    'Lifestyle Choice',
+    'Personal Description',
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title="Profile Setup" />
+      <BackButton title='Profile Setup' />
 
       <View style={styles.header}>
-        <Text variant="headlineLarge" style={styles.title}>
+        <Text variant='headlineLarge' style={styles.title}>
           Complete Your Profile
         </Text>
-        <Text variant="bodyLarge" style={styles.subtitle}>
+        <Text variant='bodyLarge' style={styles.subtitle}>
           Step {currentStep + 1} of 4: {stepTitles[currentStep]}
         </Text>
 
@@ -355,7 +355,7 @@ export default function ProfileSetupScreen() {
       <View style={styles.navigationContainer}>
         {currentStep > 0 && (
           <Button
-            mode="outlined"
+            mode='outlined'
             onPress={handleBack}
             style={styles.backButton}
           >
@@ -364,13 +364,13 @@ export default function ProfileSetupScreen() {
         )}
 
         <Button
-          mode="contained"
+          mode='contained'
           onPress={handleNext}
           disabled={!canProceed()}
           loading={loading && currentStep === 3}
           style={styles.nextButton}
         >
-          {currentStep === 3 ? "Complete Setup" : "Next"}
+          {currentStep === 3 ? 'Complete Setup' : 'Next'}
         </Button>
       </View>
     </SafeAreaView>
@@ -380,17 +380,17 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 20,
     paddingBottom: 10,
-    backgroundColor: "white",
-    alignItems: "center",
+    backgroundColor: 'white',
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   progressContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   progressDot: {
@@ -417,19 +417,19 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 24,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   stepDescription: {
     fontSize: 16,
     opacity: 0.7,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 20,
   },
   cityGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 16,
   },
@@ -440,8 +440,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   habitsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   habitChip: {
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   lifestyleContent: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 16,
   },
   lifestyleImage: {
@@ -464,21 +464,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   lifestyleTitle: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   lifestyleDescription: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
   },
   descriptionInput: {
     marginBottom: 8,
   },
   navigationContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     gap: 12,
   },
   backButton: {
