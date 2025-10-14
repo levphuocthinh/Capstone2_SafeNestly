@@ -1,0 +1,18 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "install-react-native-maps",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"install",
+				"react-native-maps@^1.21.6"
+			],
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"group": "build"
+		}
+	]
+}
