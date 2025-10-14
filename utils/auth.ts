@@ -19,8 +19,8 @@ const TEST_ACCOUNTS: Record<string, { password: string; user: User }> = {
       email: 'tenant@test.com',
       name: 'Sarah Johnson',
       role: 'tenant',
-      avatar: 'https://via.placeholder.com/80x80'
-    }
+      avatar: 'https://via.placeholder.com/80x80',
+    },
   },
   'landlord@test.com': {
     password: 'password123',
@@ -29,8 +29,8 @@ const TEST_ACCOUNTS: Record<string, { password: string; user: User }> = {
       email: 'landlord@test.com',
       name: 'Mike Thompson',
       role: 'landlord',
-      avatar: 'https://via.placeholder.com/80x80'
-    }
+      avatar: 'https://via.placeholder.com/80x80',
+    },
   },
   'guest@test.com': {
     password: 'password123',
@@ -39,9 +39,9 @@ const TEST_ACCOUNTS: Record<string, { password: string; user: User }> = {
       email: 'guest@test.com',
       name: 'Alex Guest',
       role: 'guest',
-      avatar: 'https://via.placeholder.com/80x80'
-    }
-  }
+      avatar: 'https://via.placeholder.com/80x80',
+    },
+  },
 };
 
 export interface LoginResult {
@@ -50,39 +50,42 @@ export interface LoginResult {
   error?: string;
 }
 
-export const authenticateUser = async (email: string, password: string): Promise<LoginResult> => {
+export const authenticateUser = async (
+  email: string,
+  password: string,
+): Promise<LoginResult> => {
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   const account = TEST_ACCOUNTS[email.toLowerCase()];
-  
+
   if (!account) {
     return {
       success: false,
-      error: 'Account not found. Please check your email address.'
+      error: 'Account not found. Please check your email address.',
     };
   }
-  
+
   if (account.password !== password) {
     return {
       success: false,
-      error: 'Incorrect password. Please try again.'
+      error: 'Incorrect password. Please try again.',
     };
   }
 
   // Set current user
   currentUser = account.user;
-  
+
   return {
     success: true,
-    user: account.user
+    user: account.user,
   };
 };
 
 export const logoutUser = async (): Promise<void> => {
   // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   // Clear current user
   currentUser = null;
 };
@@ -116,21 +119,21 @@ export const getTestAccounts = () => {
       password: 'password123',
       role: 'tenant',
       name: 'Sarah Johnson',
-      description: 'Full access to tenant features including roommate matching'
+      description: 'Full access to tenant features including roommate matching',
     },
     {
-      email: 'landlord@test.com', 
+      email: 'landlord@test.com',
       password: 'password123',
       role: 'landlord',
       name: 'Mike Thompson',
-      description: 'Property management and tenant interaction features'
+      description: 'Property management and tenant interaction features',
     },
     {
       email: 'guest@test.com',
-      password: 'password123', 
+      password: 'password123',
       role: 'guest',
       name: 'Alex Guest',
-      description: 'Limited access - basic browsing with registration prompts'
-    }
+      description: 'Limited access - basic browsing with registration prompts',
+    },
   ];
 };

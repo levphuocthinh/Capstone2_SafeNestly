@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Card, Button, Avatar, List, Switch } from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text, Card, Button, Avatar, List, Switch } from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface UserProfile {
   name: string;
@@ -19,12 +19,12 @@ interface UserProfile {
 }
 
 const mockProfile: UserProfile = {
-  name: "Alex Thompson",
-  email: "alex.thompson@email.com",
-  phone: "+1 (555) 123-4567",
-  avatar: "https://via.placeholder.com/100x100",
+  name: 'Alex Thompson',
+  email: 'alex.thompson@email.com',
+  phone: '+1 (555) 123-4567',
+  avatar: 'https://via.placeholder.com/100x100',
   verified: true,
-  memberSince: "January 2024",
+  memberSince: 'January 2024',
   preferences: {
     notifications: true,
     emailUpdates: false,
@@ -36,15 +36,15 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState(mockProfile);
 
   const handleEditProfile = () => {
-    router.push("./edit-profile");
+    router.push('./edit-profile');
   };
 
   const handleRoommatePreferences = () => {
-    router.push("./roommate-preferences");
+    router.push('./roommate-preferences');
   };
 
   const handleSearchPreferences = () => {
-    router.push("./search-preferences");
+    router.push('./search-preferences');
   };
 
   const handleNotificationToggle = () => {
@@ -80,15 +80,15 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       // Import logout function from auth utils
-      const { logoutUser } = require("../../utils/auth");
+      const { logoutUser } = require('../../utils/auth');
       await logoutUser();
 
       // Navigate to login screen and reset navigation stack
-      router.replace("/(auth)/login");
+      router.replace('/(auth)/login');
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
       // Fallback navigation
-      router.replace("/(auth)/login");
+      router.replace('/(auth)/login');
     }
   };
 
@@ -97,14 +97,14 @@ export default function ProfileScreen() {
       <ScrollView style={styles.scrollContainer}>
         <View style={styles.header}>
           <Button
-            mode="text"
-            icon="arrow-left"
+            mode='text'
+            icon='arrow-left'
             onPress={() => router.back()}
             style={styles.backButton}
           >
             Back
           </Button>
-          <Text variant="headlineMedium" style={styles.headerTitle}>
+          <Text variant='headlineMedium' style={styles.headerTitle}>
             Profile
           </Text>
           <View style={styles.headerSpacer} />
@@ -119,7 +119,7 @@ export default function ProfileScreen() {
               style={styles.avatar}
             />
             <View style={styles.profileInfo}>
-              <Text variant="headlineSmall" style={styles.userName}>
+              <Text variant='headlineSmall' style={styles.userName}>
                 {profile.name}
               </Text>
               <View style={styles.verificationContainer}>
@@ -135,7 +135,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <Button
-              mode="outlined"
+              mode='outlined'
               onPress={handleEditProfile}
               style={styles.editButton}
             >
@@ -147,32 +147,32 @@ export default function ProfileScreen() {
         {/* Account Settings */}
         <Card style={styles.settingsCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Account
             </Text>
 
             <List.Item
-              title="Personal Information"
-              description="Update your personal details"
-              left={(props) => <List.Icon {...props} icon="account-edit" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Personal Information'
+              description='Update your personal details'
+              left={(props) => <List.Icon {...props} icon='account-edit' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleEditProfile}
             />
 
             <List.Item
-              title="Phone Number"
+              title='Phone Number'
               description={profile.phone}
-              left={(props) => <List.Icon {...props} icon="phone" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              left={(props) => <List.Icon {...props} icon='phone' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleEditProfile}
             />
 
             <List.Item
-              title="Password & Security"
-              description="Change password, two-factor authentication"
-              left={(props) => <List.Icon {...props} icon="lock" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => router.push("./security")}
+              title='Password & Security'
+              description='Change password, two-factor authentication'
+              left={(props) => <List.Icon {...props} icon='lock' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
+              onPress={() => router.push('./security')}
             />
           </Card.Content>
         </Card>
@@ -180,23 +180,23 @@ export default function ProfileScreen() {
         {/* Preferences */}
         <Card style={styles.settingsCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Preferences
             </Text>
 
             <List.Item
-              title="Roommate Preferences"
-              description="Update your roommate matching preferences"
-              left={(props) => <List.Icon {...props} icon="account-multiple" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Roommate Preferences'
+              description='Update your roommate matching preferences'
+              left={(props) => <List.Icon {...props} icon='account-multiple' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleRoommatePreferences}
             />
 
             <List.Item
-              title="Search Preferences"
-              description="Customize your room search criteria"
-              left={(props) => <List.Icon {...props} icon="home-search" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Search Preferences'
+              description='Customize your room search criteria'
+              left={(props) => <List.Icon {...props} icon='home-search' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleSearchPreferences}
             />
           </Card.Content>
@@ -205,14 +205,14 @@ export default function ProfileScreen() {
         {/* Notifications */}
         <Card style={styles.settingsCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Notifications
             </Text>
 
             <List.Item
-              title="Push Notifications"
-              description="Receive notifications about new matches and messages"
-              left={(props) => <List.Icon {...props} icon="bell" />}
+              title='Push Notifications'
+              description='Receive notifications about new matches and messages'
+              left={(props) => <List.Icon {...props} icon='bell' />}
               right={() => (
                 <Switch
                   value={profile.preferences.notifications}
@@ -222,9 +222,9 @@ export default function ProfileScreen() {
             />
 
             <List.Item
-              title="Email Updates"
-              description="Receive weekly updates via email"
-              left={(props) => <List.Icon {...props} icon="email" />}
+              title='Email Updates'
+              description='Receive weekly updates via email'
+              left={(props) => <List.Icon {...props} icon='email' />}
               right={() => (
                 <Switch
                   value={profile.preferences.emailUpdates}
@@ -234,9 +234,9 @@ export default function ProfileScreen() {
             />
 
             <List.Item
-              title="Location Services"
-              description="Allow location access for better recommendations"
-              left={(props) => <List.Icon {...props} icon="map-marker" />}
+              title='Location Services'
+              description='Allow location access for better recommendations'
+              left={(props) => <List.Icon {...props} icon='map-marker' />}
               right={() => (
                 <Switch
                   value={profile.preferences.locationTracking}
@@ -250,32 +250,32 @@ export default function ProfileScreen() {
         {/* Support */}
         <Card style={styles.settingsCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Support
             </Text>
 
             <List.Item
-              title="Help Center"
-              description="FAQs and support articles"
-              left={(props) => <List.Icon {...props} icon="help-circle" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => router.push("./help")}
+              title='Help Center'
+              description='FAQs and support articles'
+              left={(props) => <List.Icon {...props} icon='help-circle' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
+              onPress={() => router.push('./help')}
             />
 
             <List.Item
-              title="Contact Us"
-              description="Get in touch with our support team"
-              left={(props) => <List.Icon {...props} icon="message-text" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => router.push("./contact")}
+              title='Contact Us'
+              description='Get in touch with our support team'
+              left={(props) => <List.Icon {...props} icon='message-text' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
+              onPress={() => router.push('./contact')}
             />
 
             <List.Item
-              title="Terms & Privacy"
-              description="Read our terms of service and privacy policy"
-              left={(props) => <List.Icon {...props} icon="file-document" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => router.push("./terms")}
+              title='Terms & Privacy'
+              description='Read our terms of service and privacy policy'
+              left={(props) => <List.Icon {...props} icon='file-document' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
+              onPress={() => router.push('./terms')}
             />
           </Card.Content>
         </Card>
@@ -285,21 +285,21 @@ export default function ProfileScreen() {
           <Card.Content>
             <View style={styles.logoutSection}>
               <View style={styles.logoutInfo}>
-                <Text variant="titleMedium" style={styles.logoutTitle}>
+                <Text variant='titleMedium' style={styles.logoutTitle}>
                   Account Management
                 </Text>
-                <Text variant="bodyMedium" style={styles.logoutDescription}>
+                <Text variant='bodyMedium' style={styles.logoutDescription}>
                   Securely sign out of your SafeNestly account
                 </Text>
               </View>
               <Button
-                mode="contained"
+                mode='contained'
                 onPress={handleLogout}
-                icon="logout-variant"
+                icon='logout-variant'
                 style={styles.logoutButton}
                 contentStyle={styles.logoutButtonContent}
-                buttonColor="#dc3545"
-                textColor="white"
+                buttonColor='#dc3545'
+                textColor='white'
               >
                 Sign Out
               </Button>
@@ -318,27 +318,27 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     margin: 0,
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   headerSpacer: {
     width: 60,
@@ -348,24 +348,24 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   profileContent: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 24,
   },
   avatar: {
     marginBottom: 16,
   },
   profileInfo: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 20,
   },
   userName: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   verificationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
   userEmail: {
@@ -374,15 +374,15 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   verifiedBadge: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: '#4CAF50',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
   },
   verifiedText: {
-    color: "white",
+    color: 'white',
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   memberSince: {
     fontSize: 14,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
   },
   logoutCard: {
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   logoutTitle: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
   },
   logoutDescription: {
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
   versionText: {
     fontSize: 12,

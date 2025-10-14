@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Card,
@@ -8,10 +8,10 @@ import {
   List,
   Switch,
   Divider,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import BackButton from "../../components/ui/back-button";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import BackButton from '../../components/ui/back-button';
 
 interface LandlordProfile {
   id: string;
@@ -34,18 +34,18 @@ interface LandlordProfile {
 }
 
 const mockProfile: LandlordProfile = {
-  id: "2",
-  name: "Mike Thompson",
-  email: "landlord@test.com",
-  phone: "+1 (555) 123-4567",
-  avatar: "https://via.placeholder.com/100",
+  id: '2',
+  name: 'Mike Thompson',
+  email: 'landlord@test.com',
+  phone: '+1 (555) 123-4567',
+  avatar: 'https://via.placeholder.com/100',
   verified: true,
-  joinDate: "January 2023",
+  joinDate: 'January 2023',
   totalListings: 8,
   activeListings: 5,
   rating: 4.7,
   reviews: 23,
-  bio: "Experienced landlord with over 10 years in property management. Committed to providing quality housing and excellent tenant relationships.",
+  bio: 'Experienced landlord with over 10 years in property management. Committed to providing quality housing and excellent tenant relationships.',
   preferences: {
     notifications: true,
     emailUpdates: true,
@@ -57,15 +57,15 @@ export default function LandlordProfileScreen() {
   const [profile, setProfile] = useState(mockProfile);
 
   const handleEditProfile = () => {
-    router.push("./edit-profile");
+    router.push('./edit-profile');
   };
 
   const handleViewListings = () => {
-    router.push("./all-listings");
+    router.push('./all-listings');
   };
 
   const handleViewAnalytics = () => {
-    router.push("./analytics");
+    router.push('./analytics');
   };
 
   const handleNotificationToggle = () => {
@@ -101,21 +101,21 @@ export default function LandlordProfileScreen() {
   const handleLogout = async () => {
     try {
       // Import logout function from auth utils
-      const { logoutUser } = require("../../utils/auth");
+      const { logoutUser } = require('../../utils/auth');
       await logoutUser();
 
       // Navigate to login screen and reset navigation stack
-      router.replace("/(auth)/login");
+      router.replace('/(auth)/login');
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error('Logout error:', error);
       // Fallback navigation
-      router.replace("/(auth)/login");
+      router.replace('/(auth)/login');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title="Profile" />
+      <BackButton title='Profile' />
 
       <ScrollView style={styles.scrollContainer}>
         {/* Profile Header */}
@@ -124,10 +124,10 @@ export default function LandlordProfileScreen() {
             <View style={styles.headerContent}>
               <Avatar.Image size={80} source={{ uri: profile.avatar }} />
               <View style={styles.userInfo}>
-                <Text variant="headlineSmall" style={styles.userName}>
+                <Text variant='headlineSmall' style={styles.userName}>
                   {profile.name}
                 </Text>
-                <Text variant="bodyMedium" style={styles.userEmail}>
+                <Text variant='bodyMedium' style={styles.userEmail}>
                   {profile.email}
                 </Text>
                 <View style={styles.verificationContainer}>
@@ -136,7 +136,7 @@ export default function LandlordProfileScreen() {
                       <Text style={styles.verifiedText}>✓ Verified</Text>
                     </View>
                   )}
-                  <Text variant="bodySmall" style={styles.joinDate}>
+                  <Text variant='bodySmall' style={styles.joinDate}>
                     Member since {profile.joinDate}
                   </Text>
                 </View>
@@ -144,7 +144,7 @@ export default function LandlordProfileScreen() {
             </View>
 
             <Button
-              mode="outlined"
+              mode='outlined'
               onPress={handleEditProfile}
               style={styles.editButton}
             >
@@ -156,43 +156,43 @@ export default function LandlordProfileScreen() {
         {/* Stats Card */}
         <Card style={styles.statsCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Your Statistics
             </Text>
 
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {profile.totalListings}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Total Listings
                 </Text>
               </View>
 
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {profile.activeListings}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Active Listings
                 </Text>
               </View>
 
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {profile.rating}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Rating
                 </Text>
               </View>
 
               <View style={styles.statItem}>
-                <Text variant="headlineMedium" style={styles.statValue}>
+                <Text variant='headlineMedium' style={styles.statValue}>
                   {profile.reviews}
                 </Text>
-                <Text variant="bodyMedium" style={styles.statLabel}>
+                <Text variant='bodyMedium' style={styles.statLabel}>
                   Reviews
                 </Text>
               </View>
@@ -203,31 +203,31 @@ export default function LandlordProfileScreen() {
         {/* Quick Actions */}
         <Card style={styles.actionsCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Quick Actions
             </Text>
 
             <List.Item
-              title="View All Listings"
-              description="Manage your property listings"
-              left={(props) => <List.Icon {...props} icon="home-group" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='View All Listings'
+              description='Manage your property listings'
+              left={(props) => <List.Icon {...props} icon='home-group' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleViewListings}
             />
 
             <List.Item
-              title="Analytics & Reports"
-              description="View performance metrics"
-              left={(props) => <List.Icon {...props} icon="chart-line" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Analytics & Reports'
+              description='View performance metrics'
+              left={(props) => <List.Icon {...props} icon='chart-line' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleViewAnalytics}
             />
 
             <List.Item
-              title="Edit Profile"
-              description="Update your information"
-              left={(props) => <List.Icon {...props} icon="account-edit" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Edit Profile'
+              description='Update your information'
+              left={(props) => <List.Icon {...props} icon='account-edit' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleEditProfile}
             />
           </Card.Content>
@@ -236,14 +236,14 @@ export default function LandlordProfileScreen() {
         {/* Notification Preferences */}
         <Card style={styles.preferencesCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Notifications
             </Text>
 
             <List.Item
-              title="Push Notifications"
-              description="Get notified about new applicants"
-              left={(props) => <List.Icon {...props} icon="bell" />}
+              title='Push Notifications'
+              description='Get notified about new applicants'
+              left={(props) => <List.Icon {...props} icon='bell' />}
               right={() => (
                 <Switch
                   value={profile.preferences.notifications}
@@ -253,9 +253,9 @@ export default function LandlordProfileScreen() {
             />
 
             <List.Item
-              title="Email Updates"
-              description="Receive weekly reports via email"
-              left={(props) => <List.Icon {...props} icon="email" />}
+              title='Email Updates'
+              description='Receive weekly reports via email'
+              left={(props) => <List.Icon {...props} icon='email' />}
               right={() => (
                 <Switch
                   value={profile.preferences.emailUpdates}
@@ -265,9 +265,9 @@ export default function LandlordProfileScreen() {
             />
 
             <List.Item
-              title="Phone Notifications"
-              description="Get called for urgent matters"
-              left={(props) => <List.Icon {...props} icon="phone" />}
+              title='Phone Notifications'
+              description='Get called for urgent matters'
+              left={(props) => <List.Icon {...props} icon='phone' />}
               right={() => (
                 <Switch
                   value={profile.preferences.phoneNotifications}
@@ -281,30 +281,30 @@ export default function LandlordProfileScreen() {
         {/* Account Actions */}
         <Card style={styles.accountCard}>
           <Card.Content>
-            <Text variant="titleLarge" style={styles.sectionTitle}>
+            <Text variant='titleLarge' style={styles.sectionTitle}>
               Account
             </Text>
 
             <List.Item
-              title="Help & Support"
-              description="Get help with the app"
-              left={(props) => <List.Icon {...props} icon="help-circle" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Help & Support'
+              description='Get help with the app'
+              left={(props) => <List.Icon {...props} icon='help-circle' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
             />
 
             <List.Item
-              title="Terms & Privacy"
-              description="Read our terms and privacy policy"
-              left={(props) => <List.Icon {...props} icon="file-document" />}
-              right={(props) => <List.Icon {...props} icon="chevron-right" />}
+              title='Terms & Privacy'
+              description='Read our terms and privacy policy'
+              left={(props) => <List.Icon {...props} icon='file-document' />}
+              right={(props) => <List.Icon {...props} icon='chevron-right' />}
             />
 
             <Divider style={styles.divider} />
 
             <List.Item
-              title="Logout"
-              description="Sign out of your account"
-              left={(props) => <List.Icon {...props} icon="logout" />}
+              title='Logout'
+              description='Sign out of your account'
+              left={(props) => <List.Icon {...props} icon='logout' />}
               onPress={handleLogout}
               titleStyle={styles.logoutText}
             />
@@ -318,7 +318,7 @@ export default function LandlordProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
@@ -328,8 +328,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 16,
   },
   userInfo: {
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   userName: {
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
   },
   userEmail: {
@@ -345,12 +345,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   verificationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
   },
   verifiedBadge: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: '#4CAF50',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
@@ -358,15 +358,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   verifiedText: {
-    color: "white",
+    color: 'white',
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   joinDate: {
     opacity: 0.6,
   },
   editButton: {
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   statsCard: {
     margin: 16,
@@ -374,23 +374,23 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
   statItem: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   statValue: {
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   statLabel: {
     opacity: 0.7,
     marginTop: 4,
-    textAlign: "center",
+    textAlign: 'center',
   },
   actionsCard: {
     margin: 16,
@@ -408,6 +408,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   logoutText: {
-    color: "#f44336",
+    color: '#f44336',
   },
 });

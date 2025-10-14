@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Button,
@@ -8,11 +8,11 @@ import {
   Switch,
   TextInput,
   useTheme,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Slider from "@react-native-community/slider";
-import BackButton from "../../components/ui/back-button";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Slider from '@react-native-community/slider';
+import BackButton from '../../components/ui/back-button';
 
 interface FilterState {
   priceRange: [number, number];
@@ -33,46 +33,46 @@ export default function AdvancedFiltersScreen() {
     petFriendly: false,
     lifestyle: [],
     roomType: [],
-    location: "",
+    location: '',
   });
 
   const amenityOptions = [
-    "WiFi",
-    "Kitchen",
-    "Air Conditioning",
-    "Heating",
-    "Washing Machine",
-    "Dryer",
-    "Balcony",
-    "Parking",
-    "Gym Access",
-    "Pool",
-    "Security",
-    "Pet Friendly",
-    "Furnished",
-    "Dishwasher",
-    "Microwave",
-    "Garden Access",
+    'WiFi',
+    'Kitchen',
+    'Air Conditioning',
+    'Heating',
+    'Washing Machine',
+    'Dryer',
+    'Balcony',
+    'Parking',
+    'Gym Access',
+    'Pool',
+    'Security',
+    'Pet Friendly',
+    'Furnished',
+    'Dishwasher',
+    'Microwave',
+    'Garden Access',
   ];
 
   const lifestyleOptions = [
-    "Quiet & Private",
-    "Social & Outgoing",
-    "Modern & Tech-savvy",
-    "Minimalist & Clean",
-    "Student Friendly",
-    "Professional Environment",
-    "Family Friendly",
-    "Party Friendly",
+    'Quiet & Private',
+    'Social & Outgoing',
+    'Modern & Tech-savvy',
+    'Minimalist & Clean',
+    'Student Friendly',
+    'Professional Environment',
+    'Family Friendly',
+    'Party Friendly',
   ];
 
   const roomTypes = [
-    "Studio",
-    "1 Bedroom",
-    "2 Bedroom",
-    "3+ Bedroom",
-    "Shared Room",
-    "Private Room",
+    'Studio',
+    '1 Bedroom',
+    '2 Bedroom',
+    '3+ Bedroom',
+    'Shared Room',
+    'Private Room',
   ];
 
   const toggleAmenity = (amenity: string) => {
@@ -121,7 +121,7 @@ export default function AdvancedFiltersScreen() {
   const handleApplyFilters = () => {
     // In a real app, you would pass these filters back to the home screen
     // and use them to filter the room results
-    console.log("Applied filters:", filters);
+    console.log('Applied filters:', filters);
 
     // Navigate back with filters
     router.back();
@@ -135,7 +135,7 @@ export default function AdvancedFiltersScreen() {
       petFriendly: false,
       lifestyle: [],
       roomType: [],
-      location: "",
+      location: '',
     });
   };
 
@@ -151,20 +151,20 @@ export default function AdvancedFiltersScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title="Advanced Filters" />
+      <BackButton title='Advanced Filters' />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text variant="headlineMedium" style={styles.title}>
+          <Text variant='headlineMedium' style={styles.title}>
             Refine Your Search
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant='bodyLarge' style={styles.subtitle}>
             Find your perfect room with advanced filters
           </Text>
           {getActiveFiltersCount() > 0 && (
-            <Chip icon="filter" style={styles.activeFiltersChip}>
+            <Chip icon='filter' style={styles.activeFiltersChip}>
               {getActiveFiltersCount()} filter
-              {getActiveFiltersCount() > 1 ? "s" : ""} active
+              {getActiveFiltersCount() > 1 ? 's' : ''} active
             </Chip>
           )}
         </View>
@@ -172,15 +172,15 @@ export default function AdvancedFiltersScreen() {
         {/* Price Range */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               💰 Price Range
             </Text>
-            <Text variant="bodyMedium" style={styles.rangeText}>
+            <Text variant='bodyMedium' style={styles.rangeText}>
               ${filters.priceRange[0]} - ${filters.priceRange[1]} per month
             </Text>
 
             <View style={styles.sliderContainer}>
-              <Text variant="bodySmall">Min: $500</Text>
+              <Text variant='bodySmall'>Min: $500</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={500}
@@ -190,13 +190,13 @@ export default function AdvancedFiltersScreen() {
                   updatePriceRange(Math.round(value), 0)
                 }
                 minimumTrackTintColor={theme.colors.primary}
-                maximumTrackTintColor="#e0e0e0"
+                maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant="bodySmall">Max: $3000</Text>
+              <Text variant='bodySmall'>Max: $3000</Text>
             </View>
 
             <View style={styles.sliderContainer}>
-              <Text variant="bodySmall">Min Price</Text>
+              <Text variant='bodySmall'>Min Price</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={filters.priceRange[0]}
@@ -206,9 +206,9 @@ export default function AdvancedFiltersScreen() {
                   updatePriceRange(Math.round(value), 1)
                 }
                 minimumTrackTintColor={theme.colors.primary}
-                maximumTrackTintColor="#e0e0e0"
+                maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant="bodySmall">Max Price</Text>
+              <Text variant='bodySmall'>Max Price</Text>
             </View>
           </Card.Content>
         </Card>
@@ -216,15 +216,15 @@ export default function AdvancedFiltersScreen() {
         {/* Area Range */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               📐 Room Area
             </Text>
-            <Text variant="bodyMedium" style={styles.rangeText}>
+            <Text variant='bodyMedium' style={styles.rangeText}>
               {filters.areaRange[0]} - {filters.areaRange[1]} m²
             </Text>
 
             <View style={styles.sliderContainer}>
-              <Text variant="bodySmall">Min: 15m²</Text>
+              <Text variant='bodySmall'>Min: 15m²</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={15}
@@ -234,13 +234,13 @@ export default function AdvancedFiltersScreen() {
                   updateAreaRange(Math.round(value), 0)
                 }
                 minimumTrackTintColor={theme.colors.primary}
-                maximumTrackTintColor="#e0e0e0"
+                maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant="bodySmall">Max: 150m²</Text>
+              <Text variant='bodySmall'>Max: 150m²</Text>
             </View>
 
             <View style={styles.sliderContainer}>
-              <Text variant="bodySmall">Min Area</Text>
+              <Text variant='bodySmall'>Min Area</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={filters.areaRange[0]}
@@ -250,9 +250,9 @@ export default function AdvancedFiltersScreen() {
                   updateAreaRange(Math.round(value), 1)
                 }
                 minimumTrackTintColor={theme.colors.primary}
-                maximumTrackTintColor="#e0e0e0"
+                maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant="bodySmall">Max Area</Text>
+              <Text variant='bodySmall'>Max Area</Text>
             </View>
           </Card.Content>
         </Card>
@@ -260,7 +260,7 @@ export default function AdvancedFiltersScreen() {
         {/* Room Type */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               🏠 Room Type
             </Text>
             <View style={styles.chipContainer}>
@@ -276,7 +276,7 @@ export default function AdvancedFiltersScreen() {
                     },
                   ]}
                   textStyle={
-                    filters.roomType.includes(type) ? { color: "white" } : {}
+                    filters.roomType.includes(type) ? { color: 'white' } : {}
                   }
                 >
                   {type}
@@ -289,7 +289,7 @@ export default function AdvancedFiltersScreen() {
         {/* Amenities */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               ⭐ Amenities ({filters.amenities.length} selected)
             </Text>
             <View style={styles.chipContainer}>
@@ -306,7 +306,7 @@ export default function AdvancedFiltersScreen() {
                   ]}
                   textStyle={
                     filters.amenities.includes(amenity)
-                      ? { color: "white" }
+                      ? { color: 'white' }
                       : {}
                   }
                 >
@@ -320,10 +320,10 @@ export default function AdvancedFiltersScreen() {
         {/* Lifestyle Preferences */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               🎨 Lifestyle Preferences
             </Text>
-            <Text variant="bodySmall" style={styles.sectionDescription}>
+            <Text variant='bodySmall' style={styles.sectionDescription}>
               Choose the living environment that matches your style
             </Text>
             <View style={styles.chipContainer}>
@@ -340,7 +340,7 @@ export default function AdvancedFiltersScreen() {
                   ]}
                   textStyle={
                     filters.lifestyle.includes(lifestyle)
-                      ? { color: "white" }
+                      ? { color: 'white' }
                       : {}
                   }
                 >
@@ -356,8 +356,8 @@ export default function AdvancedFiltersScreen() {
           <Card.Content>
             <View style={styles.switchContainer}>
               <View style={styles.switchContent}>
-                <Text variant="titleMedium">🐕 Pet Friendly</Text>
-                <Text variant="bodySmall" style={styles.switchDescription}>
+                <Text variant='titleMedium'>🐕 Pet Friendly</Text>
+                <Text variant='bodySmall' style={styles.switchDescription}>
                   Allow pets in the accommodation
                 </Text>
               </View>
@@ -374,19 +374,19 @@ export default function AdvancedFiltersScreen() {
         {/* Location */}
         <Card style={styles.card}>
           <Card.Content>
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
               📍 Location
             </Text>
             <TextInput
-              label="Preferred area or neighborhood"
+              label='Preferred area or neighborhood'
               value={filters.location}
               onChangeText={(text) =>
                 setFilters((prev) => ({ ...prev, location: text }))
               }
-              mode="outlined"
+              mode='outlined'
               style={styles.input}
-              placeholder="e.g., Downtown, University District, Near Metro"
-              left={<TextInput.Icon icon="map-marker" />}
+              placeholder='e.g., Downtown, University District, Near Metro'
+              left={<TextInput.Icon icon='map-marker' />}
             />
           </Card.Content>
         </Card>
@@ -395,14 +395,14 @@ export default function AdvancedFiltersScreen() {
       {/* Action Buttons */}
       <View style={styles.actionContainer}>
         <Button
-          mode="outlined"
+          mode='outlined'
           onPress={handleClearFilters}
           style={styles.clearButton}
         >
           Clear All
         </Button>
         <Button
-          mode="contained"
+          mode='contained'
           onPress={handleApplyFilters}
           style={styles.applyButton}
         >
@@ -416,30 +416,30 @@ export default function AdvancedFiltersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     paddingBottom: 100,
   },
   header: {
     padding: 20,
-    backgroundColor: "white",
-    alignItems: "center",
+    backgroundColor: 'white',
+    alignItems: 'center',
     marginBottom: 16,
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 12,
   },
   activeFiltersChip: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: '#e3f2fd',
   },
   card: {
     margin: 16,
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   sectionDescription: {
@@ -457,14 +457,14 @@ const styles = StyleSheet.create({
   },
   rangeText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 16,
-    textAlign: "center",
-    color: "#6200ee",
+    textAlign: 'center',
+    color: '#6200ee',
   },
   sliderContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginVertical: 8,
   },
   slider: {
@@ -473,8 +473,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   chip: {
@@ -484,9 +484,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   switchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   switchContent: {
     flex: 1,
@@ -497,15 +497,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    borderTopColor: '#e0e0e0',
     gap: 12,
   },
   clearButton: {

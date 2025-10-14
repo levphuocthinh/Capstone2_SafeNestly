@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Button,
@@ -7,9 +7,9 @@ import {
   Chip,
   TextInput,
   useTheme,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface LifestyleOption {
   id: string;
@@ -20,28 +20,28 @@ interface LifestyleOption {
 
 const lifestyleOptions: LifestyleOption[] = [
   {
-    id: "social",
-    title: "Social & Outgoing",
-    description: "Love meeting new people and hosting gatherings",
-    icon: "🎉",
+    id: 'social',
+    title: 'Social & Outgoing',
+    description: 'Love meeting new people and hosting gatherings',
+    icon: '🎉',
   },
   {
-    id: "quiet",
-    title: "Quiet & Private",
-    description: "Prefer peaceful environment and personal space",
-    icon: "🧘",
+    id: 'quiet',
+    title: 'Quiet & Private',
+    description: 'Prefer peaceful environment and personal space',
+    icon: '🧘',
   },
   {
-    id: "modern",
-    title: "Modern & Tech-savvy",
-    description: "Enjoy latest technology and contemporary lifestyle",
-    icon: "💻",
+    id: 'modern',
+    title: 'Modern & Tech-savvy',
+    description: 'Enjoy latest technology and contemporary lifestyle',
+    icon: '💻',
   },
   {
-    id: "minimalist",
-    title: "Minimalist & Clean",
-    description: "Keep things simple, organized, and clutter-free",
-    icon: "✨",
+    id: 'minimalist',
+    title: 'Minimalist & Clean',
+    description: 'Keep things simple, organized, and clutter-free',
+    icon: '✨',
   },
 ];
 
@@ -49,26 +49,26 @@ export default function OnboardingScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [habits, setHabits] = useState<string[]>([]);
   const [lifestyle, setLifestyle] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const theme = useTheme();
 
   const habitOptions = [
-    "Non-smoker",
-    "Smoker",
-    "Vegetarian",
-    "Vegan",
-    "Early bird",
-    "Night owl",
-    "Fitness enthusiast",
-    "Pet lover",
-    "Quiet person",
-    "Social person",
+    'Non-smoker',
+    'Smoker',
+    'Vegetarian',
+    'Vegan',
+    'Early bird',
+    'Night owl',
+    'Fitness enthusiast',
+    'Pet lover',
+    'Quiet person',
+    'Social person',
   ];
 
   const toggleHabit = (habit: string) => {
     setHabits((prev) =>
-      prev.includes(habit) ? prev.filter((h) => h !== habit) : [...prev, habit]
+      prev.includes(habit) ? prev.filter((h) => h !== habit) : [...prev, habit],
     );
   };
 
@@ -76,7 +76,7 @@ export default function OnboardingScreen() {
     setLifestyle((prev) =>
       prev.includes(lifestyleId)
         ? prev.filter((l) => l !== lifestyleId)
-        : [...prev, lifestyleId]
+        : [...prev, lifestyleId],
     );
   };
 
@@ -102,9 +102,9 @@ export default function OnboardingScreen() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Navigate to main app
-      router.replace("/(tenant)/home");
+      router.replace('/(tenant)/home');
     } catch (error) {
-      console.error("Onboarding completion error:", error);
+      console.error('Onboarding completion error:', error);
     } finally {
       setLoading(false);
     }
@@ -113,10 +113,10 @@ export default function OnboardingScreen() {
   const renderHabitsStep = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.cardTitle}>
+        <Text variant='headlineSmall' style={styles.cardTitle}>
           Tell us about your habits
         </Text>
-        <Text variant="bodyMedium" style={styles.cardSubtitle}>
+        <Text variant='bodyMedium' style={styles.cardSubtitle}>
           Select all that apply to help us match you better
         </Text>
 
@@ -139,10 +139,10 @@ export default function OnboardingScreen() {
   const renderLifestyleStep = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.cardTitle}>
+        <Text variant='headlineSmall' style={styles.cardTitle}>
           Choose your lifestyle
         </Text>
-        <Text variant="bodyMedium" style={styles.cardSubtitle}>
+        <Text variant='bodyMedium' style={styles.cardSubtitle}>
           Select up to 2 lifestyles that best describe you
         </Text>
 
@@ -158,10 +158,10 @@ export default function OnboardingScreen() {
             >
               <Card.Content style={styles.lifestyleCardContent}>
                 <Text style={styles.lifestyleIcon}>{option.icon}</Text>
-                <Text variant="titleMedium" style={styles.lifestyleTitle}>
+                <Text variant='titleMedium' style={styles.lifestyleTitle}>
                   {option.title}
                 </Text>
-                <Text variant="bodySmall" style={styles.lifestyleDescription}>
+                <Text variant='bodySmall' style={styles.lifestyleDescription}>
                   {option.description}
                 </Text>
               </Card.Content>
@@ -175,18 +175,18 @@ export default function OnboardingScreen() {
   const renderDescriptionStep = () => (
     <Card style={styles.card}>
       <Card.Content>
-        <Text variant="headlineSmall" style={styles.cardTitle}>
+        <Text variant='headlineSmall' style={styles.cardTitle}>
           Describe yourself
         </Text>
-        <Text variant="bodyMedium" style={styles.cardSubtitle}>
+        <Text variant='bodyMedium' style={styles.cardSubtitle}>
           Write a brief description to help others get to know you better
         </Text>
 
         <TextInput
-          label="About me"
+          label='About me'
           value={description}
           onChangeText={setDescription}
-          mode="outlined"
+          mode='outlined'
           multiline
           numberOfLines={4}
           placeholder="Tell us about your interests, hobbies, and what kind of living environment you're looking for..."
@@ -197,9 +197,9 @@ export default function OnboardingScreen() {
   );
 
   const steps = [
-    { title: "Habits", component: renderHabitsStep() },
-    { title: "Lifestyle", component: renderLifestyleStep() },
-    { title: "About You", component: renderDescriptionStep() },
+    { title: 'Habits', component: renderHabitsStep() },
+    { title: 'Lifestyle', component: renderLifestyleStep() },
+    { title: 'About You', component: renderDescriptionStep() },
   ];
 
   return (
@@ -207,12 +207,12 @@ export default function OnboardingScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text
-            variant="headlineLarge"
+            variant='headlineLarge'
             style={[styles.title, { color: theme.colors.primary }]}
           >
             Complete Your Profile
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant='bodyLarge' style={styles.subtitle}>
             Step {currentStep + 1} of {steps.length}
           </Text>
 
@@ -225,7 +225,7 @@ export default function OnboardingScreen() {
                   index <= currentStep && styles.activeProgressDot,
                   {
                     backgroundColor:
-                      index <= currentStep ? theme.colors.primary : "#e0e0e0",
+                      index <= currentStep ? theme.colors.primary : '#e0e0e0',
                   },
                 ]}
               />
@@ -238,7 +238,7 @@ export default function OnboardingScreen() {
         <View style={styles.buttonContainer}>
           {currentStep > 0 && (
             <Button
-              mode="outlined"
+              mode='outlined'
               onPress={handleBack}
               style={styles.backButton}
             >
@@ -247,13 +247,13 @@ export default function OnboardingScreen() {
           )}
 
           <Button
-            mode="contained"
+            mode='contained'
             onPress={handleNext}
             loading={loading}
             style={styles.nextButton}
             contentStyle={styles.buttonContent}
           >
-            {currentStep === steps.length - 1 ? "Complete" : "Next"}
+            {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
           </Button>
         </View>
       </ScrollView>
@@ -264,19 +264,19 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     flexGrow: 1,
     padding: 20,
   },
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 30,
   },
   title: {
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   subtitle: {
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   progressContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   progressDot: {
@@ -302,18 +302,18 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 24,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     marginBottom: 8,
   },
   cardSubtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     marginBottom: 24,
   },
   chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   habitChip: {
@@ -328,10 +328,10 @@ const styles = StyleSheet.create({
   selectedLifestyleCard: {
     elevation: 4,
     borderWidth: 2,
-    borderColor: "#6200ee",
+    borderColor: '#6200ee',
   },
   lifestyleCardContent: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 20,
   },
   lifestyleIcon: {
@@ -340,19 +340,19 @@ const styles = StyleSheet.create({
   },
   lifestyleTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   lifestyleDescription: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
   },
   descriptionInput: {
     marginTop: 8,
   },
   buttonContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   backButton: {

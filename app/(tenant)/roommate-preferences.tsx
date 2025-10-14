@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import {
   Text,
   Card,
@@ -8,9 +8,9 @@ import {
   Chip,
   Switch,
   useTheme,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RoommatePreferencesScreen() {
   const theme = useTheme();
@@ -26,22 +26,22 @@ export default function RoommatePreferencesScreen() {
   });
 
   const occupations = [
-    "Student",
-    "Professional",
-    "Freelancer",
-    "Artist",
-    "Engineer",
-    "Teacher",
-    "Healthcare",
+    'Student',
+    'Professional',
+    'Freelancer',
+    'Artist',
+    'Engineer',
+    'Teacher',
+    'Healthcare',
   ];
 
   const lifestyles = [
-    "Social",
-    "Quiet",
-    "Health-conscious",
-    "Night owl",
-    "Early bird",
-    "Fitness enthusiast",
+    'Social',
+    'Quiet',
+    'Health-conscious',
+    'Night owl',
+    'Early bird',
+    'Fitness enthusiast',
   ];
 
   const toggleOccupation = (occupation: string) => {
@@ -64,7 +64,7 @@ export default function RoommatePreferencesScreen() {
 
   const handleSavePreferences = () => {
     // Save preferences logic here
-    console.log("Saving preferences:", preferences);
+    console.log('Saving preferences:', preferences);
     router.back();
   };
 
@@ -74,11 +74,11 @@ export default function RoommatePreferencesScreen() {
         {/* Header */}
         <View style={styles.header}>
           <IconButton
-            icon="arrow-left"
+            icon='arrow-left'
             size={24}
             onPress={() => router.back()}
           />
-          <Text variant="titleLarge" style={styles.headerTitle}>
+          <Text variant='titleLarge' style={styles.headerTitle}>
             Roommate Preferences
           </Text>
           <View style={{ width: 48 }} />
@@ -86,27 +86,27 @@ export default function RoommatePreferencesScreen() {
 
         <View style={styles.content}>
           <Text
-            variant="headlineMedium"
+            variant='headlineMedium'
             style={[styles.title, { color: theme.colors.primary }]}
           >
             Find Your Perfect Match
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
+          <Text variant='bodyLarge' style={styles.subtitle}>
             Set your preferences to get better roommate recommendations
           </Text>
 
           {/* Age Range */}
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant='titleMedium' style={styles.sectionTitle}>
                 Age Range
               </Text>
               <View style={styles.rangeContainer}>
-                <Text variant="bodyLarge">
+                <Text variant='bodyLarge'>
                   {preferences.ageRange[0]} - {preferences.ageRange[1]} years
                   old
                 </Text>
-                <Text variant="bodySmall" style={styles.rangeNote}>
+                <Text variant='bodySmall' style={styles.rangeNote}>
                   Adjust age range for roommate matching
                 </Text>
               </View>
@@ -116,7 +116,7 @@ export default function RoommatePreferencesScreen() {
           {/* Occupation Preferences */}
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant='titleMedium' style={styles.sectionTitle}>
                 Preferred Occupations
               </Text>
               <View style={styles.chipContainer}>
@@ -137,7 +137,7 @@ export default function RoommatePreferencesScreen() {
           {/* Lifestyle Preferences */}
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant='titleMedium' style={styles.sectionTitle}>
                 Lifestyle Preferences
               </Text>
               <View style={styles.chipContainer}>
@@ -158,14 +158,14 @@ export default function RoommatePreferencesScreen() {
           {/* Living Standards */}
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant='titleMedium' style={styles.sectionTitle}>
                 Living Standards
               </Text>
 
               <View style={styles.preferenceItem}>
                 <View style={styles.preferenceText}>
-                  <Text variant="bodyLarge">Cleanliness Level</Text>
-                  <Text variant="bodySmall" style={styles.preferenceValue}>
+                  <Text variant='bodyLarge'>Cleanliness Level</Text>
+                  <Text variant='bodySmall' style={styles.preferenceValue}>
                     {preferences.cleanliness}/10
                   </Text>
                 </View>
@@ -173,8 +173,8 @@ export default function RoommatePreferencesScreen() {
 
               <View style={styles.preferenceItem}>
                 <View style={styles.preferenceText}>
-                  <Text variant="bodyLarge">Social Level</Text>
-                  <Text variant="bodySmall" style={styles.preferenceValue}>
+                  <Text variant='bodyLarge'>Social Level</Text>
+                  <Text variant='bodySmall' style={styles.preferenceValue}>
                     {preferences.socialLevel}/10
                   </Text>
                 </View>
@@ -185,12 +185,12 @@ export default function RoommatePreferencesScreen() {
           {/* Policies */}
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant='titleMedium' style={styles.sectionTitle}>
                 Policies
               </Text>
 
               <View style={styles.switchItem}>
-                <Text variant="bodyLarge">Pet Friendly</Text>
+                <Text variant='bodyLarge'>Pet Friendly</Text>
                 <Switch
                   value={preferences.petFriendly}
                   onValueChange={(value) =>
@@ -200,7 +200,7 @@ export default function RoommatePreferencesScreen() {
               </View>
 
               <View style={styles.switchItem}>
-                <Text variant="bodyLarge">Smoking Allowed</Text>
+                <Text variant='bodyLarge'>Smoking Allowed</Text>
                 <Switch
                   value={preferences.smokingOk}
                   onValueChange={(value) =>
@@ -214,15 +214,15 @@ export default function RoommatePreferencesScreen() {
           {/* Budget Range */}
           <Card style={styles.card}>
             <Card.Content>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
+              <Text variant='titleMedium' style={styles.sectionTitle}>
                 Budget Range
               </Text>
               <View style={styles.rangeContainer}>
-                <Text variant="bodyLarge">
-                  ${preferences.budgetRange[0]} - ${preferences.budgetRange[1]}{" "}
+                <Text variant='bodyLarge'>
+                  ${preferences.budgetRange[0]} - ${preferences.budgetRange[1]}{' '}
                   per month
                 </Text>
-                <Text variant="bodySmall" style={styles.rangeNote}>
+                <Text variant='bodySmall' style={styles.rangeNote}>
                   Expected roommate contribution range
                 </Text>
               </View>
@@ -231,7 +231,7 @@ export default function RoommatePreferencesScreen() {
 
           {/* Save Button */}
           <Button
-            mode="contained"
+            mode='contained'
             onPress={handleSavePreferences}
             style={styles.saveButton}
           >
@@ -246,35 +246,35 @@ export default function RoommatePreferencesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     paddingBottom: 20,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
-    fontWeight: "600",
+    textAlign: 'center',
+    fontWeight: '600',
   },
   content: {
     padding: 16,
   },
   title: {
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     marginBottom: 24,
   },
@@ -283,11 +283,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 12,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   chipContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   chip: {
@@ -301,9 +301,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   preferenceItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 8,
   },
   preferenceText: {
@@ -314,9 +314,9 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   switchItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
   },
   saveButton: {

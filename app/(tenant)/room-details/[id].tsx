@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import {
   Text,
   Card,
@@ -8,11 +8,11 @@ import {
   Avatar,
   Divider,
   List,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 interface RoomDetails {
   id: string;
@@ -32,22 +32,22 @@ interface RoomDetails {
     joinedDate: string;
   };
   safety: {
-    securityLevel: "Low" | "Medium" | "High" | "Very High";
+    securityLevel: 'Low' | 'Medium' | 'High' | 'Very High';
     securityScore: number; // 1-10
-    crimeRate: "Low" | "Medium" | "High";
+    crimeRate: 'Low' | 'Medium' | 'High';
     hospitalDistance: string;
     busStationDistance: string;
     policeStationDistance: string;
     neighborhoodWatch: boolean;
     securityCameras: boolean;
     securedEntrance: boolean;
-    lighting: "Poor" | "Fair" | "Good" | "Excellent";
+    lighting: 'Poor' | 'Fair' | 'Good' | 'Excellent';
   };
   neighborhood: {
     walkability: number; // 1-10
     transitScore: number; // 1-10
     bikeScore: number; // 1-10
-    noiseLevel: "Quiet" | "Moderate" | "Busy" | "Very Busy";
+    noiseLevel: 'Quiet' | 'Moderate' | 'Busy' | 'Very Busy';
     demographics: string;
   };
   saved: boolean;
@@ -56,56 +56,56 @@ interface RoomDetails {
 }
 
 const mockRoomDetails: RoomDetails = {
-  id: "1",
-  title: "Cozy Downtown Apartment",
+  id: '1',
+  title: 'Cozy Downtown Apartment',
   price: 1200,
-  location: "Downtown, City Center",
+  location: 'Downtown, City Center',
   area: 45,
   images: [
-    "https://via.placeholder.com/400x300/6200ee/ffffff?text=Living+Room",
-    "https://via.placeholder.com/400x300/4CAF50/ffffff?text=Kitchen",
-    "https://via.placeholder.com/400x300/FF9800/ffffff?text=Bedroom",
-    "https://via.placeholder.com/400x300/2196F3/ffffff?text=Bathroom",
-    "https://via.placeholder.com/400x300/9C27B0/ffffff?text=Balcony",
+    'https://via.placeholder.com/400x300/6200ee/ffffff?text=Living+Room',
+    'https://via.placeholder.com/400x300/4CAF50/ffffff?text=Kitchen',
+    'https://via.placeholder.com/400x300/FF9800/ffffff?text=Bedroom',
+    'https://via.placeholder.com/400x300/2196F3/ffffff?text=Bathroom',
+    'https://via.placeholder.com/400x300/9C27B0/ffffff?text=Balcony',
   ],
   amenities: [
-    "WiFi",
-    "Kitchen",
-    "Air Conditioning",
-    "Washing Machine",
-    "Balcony",
-    "Parking",
-    "Gym Access",
-    "Security System",
+    'WiFi',
+    'Kitchen',
+    'Air Conditioning',
+    'Washing Machine',
+    'Balcony',
+    'Parking',
+    'Gym Access',
+    'Security System',
   ],
   description:
-    "Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students. Close to public transportation, restaurants, and shopping centers. The building features 24/7 security, modern amenities, and excellent transport links.",
+    'Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students. Close to public transportation, restaurants, and shopping centers. The building features 24/7 security, modern amenities, and excellent transport links.',
   landlord: {
-    name: "John Smith",
-    avatar: "https://via.placeholder.com/80x80",
+    name: 'John Smith',
+    avatar: 'https://via.placeholder.com/80x80',
     rating: 4.8,
     verified: true,
-    responseTime: "Usually responds within 1 hour",
-    joinedDate: "Member since 2019",
+    responseTime: 'Usually responds within 1 hour',
+    joinedDate: 'Member since 2019',
   },
   safety: {
-    securityLevel: "High",
+    securityLevel: 'High',
     securityScore: 8.5,
-    crimeRate: "Low",
-    hospitalDistance: "0.5 km",
-    busStationDistance: "0.2 km",
-    policeStationDistance: "0.8 km",
+    crimeRate: 'Low',
+    hospitalDistance: '0.5 km',
+    busStationDistance: '0.2 km',
+    policeStationDistance: '0.8 km',
     neighborhoodWatch: true,
     securityCameras: true,
     securedEntrance: true,
-    lighting: "Excellent",
+    lighting: 'Excellent',
   },
   neighborhood: {
     walkability: 9,
     transitScore: 8,
     bikeScore: 7,
-    noiseLevel: "Moderate",
-    demographics: "Young professionals and students",
+    noiseLevel: 'Moderate',
+    demographics: 'Young professionals and students',
   },
   saved: false,
   reviewCount: 34,
@@ -138,19 +138,19 @@ export default function RoomDetailsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Button
-            mode="text"
-            icon="arrow-left"
+            mode='text'
+            icon='arrow-left'
             onPress={handleBack}
             style={styles.backButton}
           >
             Back
           </Button>
           <Button
-            mode="text"
-            icon={room.saved ? "heart" : "heart-outline"}
+            mode='text'
+            icon={room.saved ? 'heart' : 'heart-outline'}
             onPress={handleSaveRoom}
           >
-            {room.saved ? "Saved" : "Save"}
+            {room.saved ? 'Saved' : 'Save'}
           </Button>
         </View>
 
@@ -162,7 +162,7 @@ export default function RoomDetailsScreen() {
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={(event) => {
               const index = Math.round(
-                event.nativeEvent.contentOffset.x / width
+                event.nativeEvent.contentOffset.x / width,
               );
               setCurrentImageIndex(index);
             }}
@@ -191,10 +191,10 @@ export default function RoomDetailsScreen() {
         {/* Room Information */}
         <Card style={styles.infoCard}>
           <Card.Content>
-            <Text variant="headlineSmall" style={styles.roomTitle}>
+            <Text variant='headlineSmall' style={styles.roomTitle}>
               {room.title}
             </Text>
-            <Text variant="bodyLarge" style={styles.roomLocation}>
+            <Text variant='bodyLarge' style={styles.roomLocation}>
               {room.location}
             </Text>
 
@@ -206,7 +206,7 @@ export default function RoomDetailsScreen() {
             <Divider style={styles.divider} />
 
             <Text style={styles.sectionTitle}>Description</Text>
-            <Text variant="bodyMedium" style={styles.description}>
+            <Text variant='bodyMedium' style={styles.description}>
               {room.description}
             </Text>
 
@@ -228,19 +228,19 @@ export default function RoomDetailsScreen() {
           <Card.Content>
             <Text style={styles.sectionTitle}>Safety Information</Text>
             <List.Item
-              title="Security Level"
+              title='Security Level'
               description={room.safety.securityLevel}
-              left={(props) => <List.Icon {...props} icon="shield-check" />}
+              left={(props) => <List.Icon {...props} icon='shield-check' />}
             />
             <List.Item
-              title="Nearest Hospital"
+              title='Nearest Hospital'
               description={room.safety.hospitalDistance}
-              left={(props) => <List.Icon {...props} icon="hospital-box" />}
+              left={(props) => <List.Icon {...props} icon='hospital-box' />}
             />
             <List.Item
-              title="Bus Station"
+              title='Bus Station'
               description={room.safety.busStationDistance}
-              left={(props) => <List.Icon {...props} icon="bus" />}
+              left={(props) => <List.Icon {...props} icon='bus' />}
             />
           </Card.Content>
         </Card>
@@ -253,12 +253,12 @@ export default function RoomDetailsScreen() {
               <Avatar.Image size={60} source={{ uri: room.landlord.avatar }} />
               <View style={styles.landlordDetails}>
                 <View style={styles.landlordName}>
-                  <Text variant="titleMedium" style={styles.landlordNameText}>
+                  <Text variant='titleMedium' style={styles.landlordNameText}>
                     {room.landlord.name}
                   </Text>
                   {room.landlord.verified && (
                     <Chip
-                      icon="check-circle"
+                      icon='check-circle'
                       compact
                       style={styles.verifiedChip}
                     >
@@ -278,16 +278,16 @@ export default function RoomDetailsScreen() {
       {/* Contact Actions */}
       <View style={styles.contactActions}>
         <Button
-          mode="outlined"
-          icon="phone"
+          mode='outlined'
+          icon='phone'
           onPress={handleCallLandlord}
           style={styles.callButton}
         >
           Call
         </Button>
         <Button
-          mode="contained"
-          icon="message"
+          mode='contained'
+          icon='message'
           onPress={handleContactLandlord}
           style={styles.chatButton}
         >
@@ -301,45 +301,45 @@ export default function RoomDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   backButton: {
     margin: 0,
   },
   imageContainer: {
-    position: "relative",
+    position: 'relative',
   },
   roomImage: {
     width: width,
     height: 250,
   },
   imageIndicator: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 16,
     left: 0,
     right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 8,
   },
   indicator: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   activeIndicator: {
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   infoCard: {
     margin: 16,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   roomTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   roomLocation: {
@@ -356,15 +356,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   priceAreaContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
   priceText: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   areaText: {
     fontSize: 16,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   description: {
@@ -383,8 +383,8 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   amenityChip: {
@@ -402,16 +402,16 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   landlordInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   landlordDetails: {
     marginLeft: 16,
     flex: 1,
   },
   landlordName: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
   landlordNameText: {
@@ -419,22 +419,22 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   verifiedChip: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: '#4CAF50',
   },
   ratingText: {
     fontSize: 14,
     opacity: 0.7,
   },
   contactActions: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    borderTopColor: '#e0e0e0',
     gap: 12,
   },
   callButton: {

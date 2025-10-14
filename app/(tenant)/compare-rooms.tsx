@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, Card, Button, IconButton, Chip } from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Text, Card, Button, IconButton, Chip } from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Room {
   id: number;
@@ -20,35 +20,35 @@ export default function CompareRoomsScreen() {
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([
     {
       id: 1,
-      title: "Modern Downtown Studio",
-      price: "$1,200/month",
-      location: "Downtown District",
-      size: "450 sq ft",
-      roomType: "Studio",
-      amenities: ["WiFi", "Gym", "Pool", "Parking"],
+      title: 'Modern Downtown Studio',
+      price: '$1,200/month',
+      location: 'Downtown District',
+      size: '450 sq ft',
+      roomType: 'Studio',
+      amenities: ['WiFi', 'Gym', 'Pool', 'Parking'],
       safetyScore: 9.2,
-      image: "studio1.jpg",
+      image: 'studio1.jpg',
     },
     {
       id: 2,
-      title: "Cozy 1BR Apartment",
-      price: "$1,500/month",
-      location: "University Area",
-      size: "650 sq ft",
-      roomType: "1 Bedroom",
-      amenities: ["WiFi", "Laundry", "Pet-friendly", "Balcony"],
+      title: 'Cozy 1BR Apartment',
+      price: '$1,500/month',
+      location: 'University Area',
+      size: '650 sq ft',
+      roomType: '1 Bedroom',
+      amenities: ['WiFi', 'Laundry', 'Pet-friendly', 'Balcony'],
       safetyScore: 8.8,
-      image: "apartment1.jpg",
+      image: 'apartment1.jpg',
     },
   ]);
 
   const comparisonCategories = [
-    { key: "price", label: "Monthly Rent" },
-    { key: "location", label: "Location" },
-    { key: "size", label: "Size" },
-    { key: "roomType", label: "Room Type" },
-    { key: "safetyScore", label: "Safety Score" },
-    { key: "amenities", label: "Amenities" },
+    { key: 'price', label: 'Monthly Rent' },
+    { key: 'location', label: 'Location' },
+    { key: 'size', label: 'Size' },
+    { key: 'roomType', label: 'Room Type' },
+    { key: 'safetyScore', label: 'Safety Score' },
+    { key: 'amenities', label: 'Amenities' },
   ];
 
   const removeRoom = (roomId: number) => {
@@ -58,13 +58,13 @@ export default function CompareRoomsScreen() {
   const renderComparisonRow = (category: any) => (
     <View key={category.key} style={styles.comparisonRow}>
       <View style={styles.categoryCell}>
-        <Text variant="titleSmall" style={styles.categoryLabel}>
+        <Text variant='titleSmall' style={styles.categoryLabel}>
           {category.label}
         </Text>
       </View>
       {selectedRooms.map((room) => (
         <View key={`${room.id}-${category.key}`} style={styles.dataCell}>
-          {category.key === "amenities" ? (
+          {category.key === 'amenities' ? (
             <View style={styles.amenitiesContainer}>
               {room.amenities.slice(0, 2).map((amenity) => (
                 <Chip key={amenity} compact style={styles.amenityChip}>
@@ -72,24 +72,24 @@ export default function CompareRoomsScreen() {
                 </Chip>
               ))}
               {room.amenities.length > 2 && (
-                <Text variant="bodySmall" style={styles.moreAmenities}>
+                <Text variant='bodySmall' style={styles.moreAmenities}>
                   +{room.amenities.length - 2} more
                 </Text>
               )}
             </View>
-          ) : category.key === "safetyScore" ? (
+          ) : category.key === 'safetyScore' ? (
             <View style={styles.scoreContainer}>
               <Text
-                variant="titleMedium"
+                variant='titleMedium'
                 style={[
                   styles.scoreText,
                   {
                     color:
                       room.safetyScore >= 9
-                        ? "#4CAF50"
+                        ? '#4CAF50'
                         : room.safetyScore >= 8
-                        ? "#FF9800"
-                        : "#F44336",
+                          ? '#FF9800'
+                          : '#F44336',
                   },
                 ]}
               >
@@ -97,7 +97,7 @@ export default function CompareRoomsScreen() {
               </Text>
             </View>
           ) : (
-            <Text variant="bodyMedium" style={styles.dataText}>
+            <Text variant='bodyMedium' style={styles.dataText}>
               {room[category.key as keyof Room]}
             </Text>
           )}
@@ -110,12 +110,12 @@ export default function CompareRoomsScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <IconButton icon="arrow-left" size={24} onPress={() => router.back()} />
-        <Text variant="titleLarge" style={styles.headerTitle}>
+        <IconButton icon='arrow-left' size={24} onPress={() => router.back()} />
+        <Text variant='titleLarge' style={styles.headerTitle}>
           Compare Rooms
         </Text>
         <IconButton
-          icon="plus"
+          icon='plus'
           size={24}
           onPress={() => {
             // Add more rooms to compare
@@ -126,14 +126,14 @@ export default function CompareRoomsScreen() {
 
       {selectedRooms.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text variant="headlineSmall" style={styles.emptyTitle}>
+          <Text variant='headlineSmall' style={styles.emptyTitle}>
             No Rooms to Compare
           </Text>
-          <Text variant="bodyLarge" style={styles.emptyDescription}>
+          <Text variant='bodyLarge' style={styles.emptyDescription}>
             Add rooms to your favorites to compare them here
           </Text>
           <Button
-            mode="contained"
+            mode='contained'
             onPress={() => router.back()}
             style={styles.exploreButton}
           >
@@ -149,15 +149,15 @@ export default function CompareRoomsScreen() {
               <Card key={room.id} style={styles.roomHeaderCard}>
                 <Card.Content style={styles.roomHeaderContent}>
                   <IconButton
-                    icon="close"
+                    icon='close'
                     size={16}
                     style={styles.removeButton}
                     onPress={() => removeRoom(room.id)}
                   />
-                  <Text variant="titleSmall" style={styles.roomHeaderTitle}>
+                  <Text variant='titleSmall' style={styles.roomHeaderTitle}>
                     {room.title}
                   </Text>
-                  <Text variant="bodySmall" style={styles.roomHeaderPrice}>
+                  <Text variant='bodySmall' style={styles.roomHeaderPrice}>
                     {room.price}
                   </Text>
                 </Card.Content>
@@ -175,7 +175,7 @@ export default function CompareRoomsScreen() {
             {selectedRooms.map((room) => (
               <Button
                 key={room.id}
-                mode="contained"
+                mode='contained'
                 style={styles.actionButton}
                 onPress={() => router.push(`../room-details/${room.id}`)}
               >
@@ -192,36 +192,36 @@ export default function CompareRoomsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
-    fontWeight: "600",
+    textAlign: 'center',
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   emptyTitle: {
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptyDescription: {
     marginBottom: 20,
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
   },
   exploreButton: {
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   roomHeaders: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
     paddingBottom: 8,
   },
@@ -241,13 +241,13 @@ const styles = StyleSheet.create({
   roomHeaderCard: {
     flex: 1,
     marginHorizontal: 4,
-    position: "relative",
+    position: 'relative',
   },
   roomHeaderContent: {
     padding: 12,
   },
   removeButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 4,
     right: 4,
   },
@@ -256,19 +256,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   roomHeaderPrice: {
-    fontWeight: "600",
-    color: "#2196F3",
+    fontWeight: '600',
+    color: '#2196F3',
   },
   comparisonTable: {
     paddingHorizontal: 16,
   },
   comparisonRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 8,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 8,
     elevation: 1,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.22,
     shadowRadius: 2.22,
@@ -276,25 +276,25 @@ const styles = StyleSheet.create({
   categoryCell: {
     width: 120,
     padding: 12,
-    justifyContent: "center",
-    backgroundColor: "#f8f9fa",
+    justifyContent: 'center',
+    backgroundColor: '#f8f9fa',
     borderTopLeftRadius: 8,
     borderBottomLeftRadius: 8,
   },
   categoryLabel: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   dataCell: {
     flex: 1,
     padding: 12,
-    justifyContent: "center",
+    justifyContent: 'center',
     marginHorizontal: 4,
   },
   dataText: {
-    textAlign: "center",
+    textAlign: 'center',
   },
   amenitiesContainer: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   amenityChip: {
     marginVertical: 2,
@@ -304,13 +304,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   scoreContainer: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   scoreText: {
-    fontWeight: "600",
+    fontWeight: '600',
   },
   actionButtonsContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 16,
     gap: 8,
   },

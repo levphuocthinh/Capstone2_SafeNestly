@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, FlatList } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import {
   Text,
   Searchbar,
@@ -10,9 +10,9 @@ import {
   Chip,
   Modal,
   Portal,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Room {
   id: string;
@@ -26,37 +26,37 @@ interface Room {
 
 const mockRooms: Room[] = [
   {
-    id: "1",
-    title: "Modern Downtown Apartment",
+    id: '1',
+    title: 'Modern Downtown Apartment',
     price: 1200,
-    location: "Downtown, City Center",
+    location: 'Downtown, City Center',
     area: 45,
-    image: "https://via.placeholder.com/300x200",
-    amenities: ["WiFi", "Kitchen", "Air Conditioning"],
+    image: 'https://via.placeholder.com/300x200',
+    amenities: ['WiFi', 'Kitchen', 'Air Conditioning'],
   },
   {
-    id: "2",
-    title: "Cozy Studio Near University",
+    id: '2',
+    title: 'Cozy Studio Near University',
     price: 800,
-    location: "University District",
+    location: 'University District',
     area: 35,
-    image: "https://via.placeholder.com/300x200",
-    amenities: ["WiFi", "Gym", "Parking"],
+    image: 'https://via.placeholder.com/300x200',
+    amenities: ['WiFi', 'Gym', 'Parking'],
   },
   {
-    id: "3",
-    title: "Spacious Family Home",
+    id: '3',
+    title: 'Spacious Family Home',
     price: 2000,
-    location: "Suburban Area",
+    location: 'Suburban Area',
     area: 120,
-    image: "https://via.placeholder.com/300x200",
-    amenities: ["Garden", "Parking", "Kitchen", "WiFi"],
+    image: 'https://via.placeholder.com/300x200',
+    amenities: ['Garden', 'Parking', 'Kitchen', 'WiFi'],
   },
 ];
 
 export default function GuestHomeScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPriceRange, setSelectedPriceRange] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
   const [rooms] = useState(mockRooms);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -78,12 +78,12 @@ export default function GuestHomeScreen() {
 
   const handleLogin = () => {
     setShowLoginModal(false);
-    router.push("/(auth)/login");
+    router.push('/(auth)/login');
   };
 
   const handleRegister = () => {
     setShowLoginModal(false);
-    router.push("/(auth)/register");
+    router.push('/(auth)/register');
   };
 
   const filteredRooms = rooms.filter((room) => {
@@ -95,11 +95,11 @@ export default function GuestHomeScreen() {
 
     const price = room.price;
     switch (selectedPriceRange) {
-      case "under-1000":
+      case 'under-1000':
         return matchesSearch && price < 1000;
-      case "1000-1500":
+      case '1000-1500':
         return matchesSearch && price >= 1000 && price <= 1500;
-      case "over-1500":
+      case 'over-1500':
         return matchesSearch && price > 1500;
       default:
         return matchesSearch;
@@ -107,10 +107,10 @@ export default function GuestHomeScreen() {
   });
 
   const priceRanges = [
-    { key: "", label: "All Prices" },
-    { key: "under-1000", label: "Under $1,000" },
-    { key: "1000-1500", label: "$1,000 - $1,500" },
-    { key: "over-1500", label: "Over $1,500" },
+    { key: '', label: 'All Prices' },
+    { key: 'under-1000', label: 'Under $1,000' },
+    { key: '1000-1500', label: '$1,000 - $1,500' },
+    { key: 'over-1500', label: 'Over $1,500' },
   ];
 
   const renderRoomCard = ({ item }: { item: Room }) => (
@@ -140,7 +140,7 @@ export default function GuestHomeScreen() {
 
         <View style={styles.cardActions}>
           <Button
-            mode="outlined"
+            mode='outlined'
             onPress={handleLoginRequired}
             style={styles.actionButton}
             compact
@@ -148,7 +148,7 @@ export default function GuestHomeScreen() {
             Save
           </Button>
           <Button
-            mode="contained"
+            mode='contained'
             onPress={handleLoginRequired}
             style={styles.actionButton}
             compact
@@ -171,16 +171,16 @@ export default function GuestHomeScreen() {
           </Paragraph>
           <View style={styles.authButtons}>
             <Button
-              mode="outlined"
-              onPress={() => router.push("/(auth)/login")}
+              mode='outlined'
+              onPress={() => router.push('/(auth)/login')}
               style={styles.authButton}
               compact
             >
               Sign In
             </Button>
             <Button
-              mode="contained"
-              onPress={() => router.push("/(auth)/register")}
+              mode='contained'
+              onPress={() => router.push('/(auth)/register')}
               style={styles.authButton}
               compact
             >
@@ -192,7 +192,7 @@ export default function GuestHomeScreen() {
         {/* Search Section */}
         <View style={styles.searchSection}>
           <Searchbar
-            placeholder="Search by city, address..."
+            placeholder='Search by city, address...'
             onChangeText={handleSearch}
             value={searchQuery}
             style={styles.searchBar}
@@ -222,8 +222,8 @@ export default function GuestHomeScreen() {
               contact landlords, and use AI roommate matching!
             </Paragraph>
             <Button
-              mode="contained"
-              onPress={() => router.push("/(auth)/register")}
+              mode='contained'
+              onPress={() => router.push('/(auth)/register')}
               style={styles.signUpButton}
             >
               Sign Up for Full Access
@@ -263,14 +263,14 @@ export default function GuestHomeScreen() {
 
               <View style={styles.modalButtons}>
                 <Button
-                  mode="outlined"
+                  mode='outlined'
                   onPress={handleLogin}
                   style={styles.modalButton}
                 >
                   Sign In
                 </Button>
                 <Button
-                  mode="contained"
+                  mode='contained'
                   onPress={handleRegister}
                   style={styles.modalButton}
                 >
@@ -279,7 +279,7 @@ export default function GuestHomeScreen() {
               </View>
 
               <Button
-                mode="text"
+                mode='text'
                 onPress={() => setShowLoginModal(false)}
                 style={styles.cancelButton}
               >
@@ -296,20 +296,20 @@ export default function GuestHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
     flex: 1,
   },
   header: {
     padding: 20,
-    backgroundColor: "white",
-    alignItems: "center",
+    backgroundColor: 'white',
+    alignItems: 'center',
   },
   appTitle: {
     fontSize: 32,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
     marginBottom: 8,
   },
   appSubtitle: {
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   authButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   authButton: {
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   searchSection: {
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     marginBottom: 10,
   },
   searchBar: {
@@ -335,12 +335,12 @@ const styles = StyleSheet.create({
   },
   filterTitle: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
   },
   priceFilters: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   priceChip: {
@@ -349,13 +349,13 @@ const styles = StyleSheet.create({
   noticeCard: {
     margin: 20,
     marginBottom: 10,
-    backgroundColor: "#E3F2FD",
+    backgroundColor: '#E3F2FD',
     elevation: 2,
   },
   noticeTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#1976D2",
+    fontWeight: '600',
+    color: '#1976D2',
     marginBottom: 8,
   },
   noticeText: {
@@ -364,15 +364,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   signUpButton: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   roomsSection: {
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 16,
   },
   roomCard: {
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   },
   roomTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 4,
   },
   roomLocation: {
@@ -396,24 +396,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   roomDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   priceText: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#6200ee",
+    fontWeight: 'bold',
+    color: '#6200ee',
   },
   areaText: {
     fontSize: 14,
     opacity: 0.7,
   },
   amenitiesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 6,
     marginBottom: 16,
   },
@@ -424,10 +424,10 @@ const styles = StyleSheet.create({
   moreAmenities: {
     fontSize: 12,
     opacity: 0.7,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   cardActions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   actionButton: {
@@ -437,23 +437,23 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalCard: {
-    alignItems: "center",
+    alignItems: 'center',
     padding: 20,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
   },
   modalText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
   },
   modalButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 16,
   },

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, StyleSheet, FlatList } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, FlatList } from 'react-native';
 import {
   Text,
   Card,
@@ -9,16 +9,16 @@ import {
   Avatar,
   Chip,
   Searchbar,
-} from "react-native-paper";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Contact {
   id: string;
   name: string;
   avatar: string;
   property: string;
-  status: "new" | "replied" | "interested" | "not-interested";
+  status: 'new' | 'replied' | 'interested' | 'not-interested';
   lastMessage: string;
   lastMessageTime: string;
   unreadCount: number;
@@ -26,43 +26,43 @@ interface Contact {
 
 const mockContacts: Contact[] = [
   {
-    id: "1",
-    name: "Sarah Johnson",
-    avatar: "https://via.placeholder.com/50x50",
-    property: "Modern Downtown Apartment",
-    status: "new",
+    id: '1',
+    name: 'Sarah Johnson',
+    avatar: 'https://via.placeholder.com/50x50',
+    property: 'Modern Downtown Apartment',
+    status: 'new',
     lastMessage:
       "Hi! I'm interested in viewing this apartment. When would be a good time?",
-    lastMessageTime: "2 hours ago",
+    lastMessageTime: '2 hours ago',
     unreadCount: 2,
   },
   {
-    id: "2",
-    name: "Mike Chen",
-    avatar: "https://via.placeholder.com/50x50",
-    property: "Cozy Studio Near University",
-    status: "replied",
+    id: '2',
+    name: 'Mike Chen',
+    avatar: 'https://via.placeholder.com/50x50',
+    property: 'Cozy Studio Near University',
+    status: 'replied',
     lastMessage:
       "Thank you for the information. I'll let you know by tomorrow.",
-    lastMessageTime: "1 day ago",
+    lastMessageTime: '1 day ago',
     unreadCount: 0,
   },
   {
-    id: "3",
-    name: "Emma Wilson",
-    avatar: "https://via.placeholder.com/50x50",
-    property: "Modern Downtown Apartment",
-    status: "interested",
-    lastMessage: "I would like to schedule a viewing for this weekend.",
-    lastMessageTime: "3 days ago",
+    id: '3',
+    name: 'Emma Wilson',
+    avatar: 'https://via.placeholder.com/50x50',
+    property: 'Modern Downtown Apartment',
+    status: 'interested',
+    lastMessage: 'I would like to schedule a viewing for this weekend.',
+    lastMessageTime: '3 days ago',
     unreadCount: 1,
   },
 ];
 
 export default function ManageContactsScreen() {
   const [contacts] = useState(mockContacts);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
 
   const handleContactPress = (contactId: string) => {
     const contact = contacts.find((c) => c.id === contactId);
@@ -77,29 +77,29 @@ export default function ManageContactsScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "new":
-        return "#FF5722";
-      case "replied":
-        return "#2196F3";
-      case "interested":
-        return "#4CAF50";
-      case "not-interested":
-        return "#757575";
+      case 'new':
+        return '#FF5722';
+      case 'replied':
+        return '#2196F3';
+      case 'interested':
+        return '#4CAF50';
+      case 'not-interested':
+        return '#757575';
       default:
-        return "#757575";
+        return '#757575';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "new":
-        return "New";
-      case "replied":
-        return "Replied";
-      case "interested":
-        return "Interested";
-      case "not-interested":
-        return "Not Interested";
+      case 'new':
+        return 'New';
+      case 'replied':
+        return 'Replied';
+      case 'interested':
+        return 'Interested';
+      case 'not-interested':
+        return 'Not Interested';
       default:
         return status;
     }
@@ -110,26 +110,26 @@ export default function ManageContactsScreen() {
       contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contact.property.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (selectedFilter === "all") return matchesSearch;
+    if (selectedFilter === 'all') return matchesSearch;
     return matchesSearch && contact.status === selectedFilter;
   });
 
   const filterOptions = [
-    { key: "all", label: "All", count: contacts.length },
+    { key: 'all', label: 'All', count: contacts.length },
     {
-      key: "new",
-      label: "New",
-      count: contacts.filter((c) => c.status === "new").length,
+      key: 'new',
+      label: 'New',
+      count: contacts.filter((c) => c.status === 'new').length,
     },
     {
-      key: "replied",
-      label: "Replied",
-      count: contacts.filter((c) => c.status === "replied").length,
+      key: 'replied',
+      label: 'Replied',
+      count: contacts.filter((c) => c.status === 'replied').length,
     },
     {
-      key: "interested",
-      label: "Interested",
-      count: contacts.filter((c) => c.status === "interested").length,
+      key: 'interested',
+      label: 'Interested',
+      count: contacts.filter((c) => c.status === 'interested').length,
     },
   ];
 
@@ -182,8 +182,8 @@ export default function ManageContactsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Button
-          mode="text"
-          icon="arrow-left"
+          mode='text'
+          icon='arrow-left'
           onPress={() => router.back()}
           style={styles.backButton}
         >
@@ -195,7 +195,7 @@ export default function ManageContactsScreen() {
 
       <View style={styles.searchSection}>
         <Searchbar
-          placeholder="Search contacts..."
+          placeholder='Search contacts...'
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchBar}
@@ -221,7 +221,7 @@ export default function ManageContactsScreen() {
           <Paragraph style={styles.emptySubtitle}>
             {contacts.length === 0
               ? "You haven't received any messages yet. When tenants contact you about your listings, they'll appear here."
-              : "No contacts match your search criteria."}
+              : 'No contacts match your search criteria.'}
           </Paragraph>
         </View>
       ) : (
@@ -240,40 +240,40 @@ export default function ManageContactsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: '#f5f5f5',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     margin: 0,
   },
   headerTitle: {
     flex: 1,
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 20,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   headerSpacer: {
     width: 60,
   },
   searchSection: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   searchBar: {
     marginBottom: 12,
     elevation: 1,
   },
   filtersContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   filterChip: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   contactHeader: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 12,
   },
   avatar: {
@@ -300,28 +300,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
   },
   contactName: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
     marginRight: 8,
   },
   unreadBadge: {
-    backgroundColor: "#FF5722",
+    backgroundColor: '#FF5722',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 6,
   },
   unreadText: {
-    color: "white",
+    color: 'white',
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   propertyName: {
     fontSize: 14,
@@ -329,17 +329,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statusContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   statusChip: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   statusText: {
-    color: "white",
+    color: 'white',
     fontSize: 11,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   timeText: {
     fontSize: 12,
@@ -352,19 +352,19 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 40,
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     opacity: 0.7,
     lineHeight: 24,
   },

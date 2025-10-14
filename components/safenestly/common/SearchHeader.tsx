@@ -1,6 +1,6 @@
-import React from "react";
-import { View, StyleSheet } from "react-native";
-import { Searchbar, Button } from "react-native-paper";
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Searchbar, Button } from 'react-native-paper';
 
 interface SearchHeaderProps {
   searchQuery: string;
@@ -16,12 +16,12 @@ interface SearchHeaderProps {
 export function SearchHeader({
   searchQuery,
   onSearchChange,
-  placeholder = "Search by city, address...",
+  placeholder = 'Search by city, address...',
   showMapButton = false,
   showFilterButton = false,
   onMapPress,
   onFilterPress,
-  mapIcon = "map",
+  mapIcon = 'map',
 }: SearchHeaderProps) {
   return (
     <View style={styles.container}>
@@ -30,7 +30,7 @@ export function SearchHeader({
         onChangeText={onSearchChange}
         value={searchQuery}
         style={styles.searchBar}
-        icon={showMapButton ? mapIcon : "magnify"}
+        icon={showMapButton ? mapIcon : 'magnify'}
         onIconPress={showMapButton ? onMapPress : undefined}
       />
 
@@ -38,8 +38,8 @@ export function SearchHeader({
         <View style={styles.actions}>
           {showFilterButton && onFilterPress && (
             <Button
-              mode="outlined"
-              icon="filter-variant"
+              mode='outlined'
+              icon='filter-variant'
               onPress={onFilterPress}
               style={styles.actionButton}
             >
@@ -48,8 +48,8 @@ export function SearchHeader({
           )}
           {showMapButton && onMapPress && (
             <Button
-              mode="contained"
-              icon="map"
+              mode='contained'
+              icon='map'
               onPress={onMapPress}
               style={styles.actionButton}
             >
@@ -65,16 +65,16 @@ export function SearchHeader({
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: '#e0e0e0',
   },
   searchBar: {
     marginBottom: 12,
     elevation: 2,
   },
   actions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   actionButton: {
