@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
 import {
   Text,
@@ -8,9 +8,12 @@ import {
   Chip,
   Avatar,
   FAB,
+  IconButton,
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { roomService, Room as RoomModel } from '../../services/room.service';
+import { getStoredToken } from '../../utils/auth-storage';
 
 interface Room {
   id: string;
@@ -32,74 +35,51 @@ interface Room {
   distanceToCenter: number;
 }
 
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    title: 'Cozy Downtown Apartment',
-    price: 1200,
-    location: 'Downtown, City Center',
-    area: 45,
-    images: [
-      'https://via.placeholder.com/300x200/6200ee/ffffff?text=Modern+Apt',
-    ],
-    amenities: ['WiFi', 'Kitchen', 'Air Conditioning', 'Parking', 'Gym Access'],
-    saved: false,
-    rating: 4.8,
-    reviewCount: 23,
-    landlord: {
-      name: 'Sarah Wilson',
-      verified: true,
-    },
-    availableFrom: 'Available Now',
-    roomType: '1 Bedroom',
-    distanceToCenter: 0.8,
-  },
-  {
-    id: '2',
-    title: 'Modern Studio Near University',
-    price: 800,
-    location: 'University District',
-    area: 35,
-    images: ['https://via.placeholder.com/300x200/4CAF50/ffffff?text=Studio'],
-    amenities: ['WiFi', 'Gym', 'Parking', 'Study Area', 'Laundry'],
-    saved: true,
-    rating: 4.6,
-    reviewCount: 18,
-    landlord: {
-      name: 'Mike Chen',
-      verified: true,
-    },
-    availableFrom: 'Available Dec 1',
-    roomType: 'Studio',
-    distanceToCenter: 2.1,
-  },
-  {
-    id: '3',
-    title: 'Spacious Shared Room',
-    price: 650,
-    location: 'Sunset District',
-    area: 28,
-    images: [
-      'https://via.placeholder.com/300x200/FF9800/ffffff?text=Shared+Room',
-    ],
-    amenities: ['WiFi', 'Kitchen', 'Garden', 'Pet Friendly'],
-    saved: false,
-    rating: 4.4,
-    reviewCount: 12,
-    landlord: {
-      name: 'Alex Johnson',
-      verified: false,
-    },
-    availableFrom: 'Available Jan 15',
-    roomType: 'Shared Room',
-    distanceToCenter: 3.5,
-  },
-];
-
 export default function TenantHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [rooms, setRooms] = useState(mockRooms);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+
+  // Fetch rooms on component mount
+  useEffect(() => {
+    checkAuthAndFetchRooms();
+  }, []);
+
+  const checkAuthAndFetchRooms = async () => {
+    try {
+      // Check if user is authenticated
+      const token = await getStoredToken();
+      if (!token) {
+        // User not authenticated, redirect to login
+        router.replace('/(auth)/login');
+        return;
+      }
+
+      // User is authenticated, fetch rooms
+      await fetchRooms();
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      router.replace('/(auth)/login');
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedRooms = await roomService.getAllRooms();
+      setRooms(fetchedRooms);
+    } catch (err) {
+      console.error('Failed to fetch rooms:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load rooms');
+      // Fallback to empty array
+      setRooms([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const removeFilter = (filter: string) => {
     setSelectedFilters((prev) => prev.filter((f) => f !== filter));
@@ -132,7 +112,15 @@ export default function TenantHomeScreen() {
 
   const renderRoomCard = ({ item }: { item: Room }) => (
     <Card style={styles.roomCard} onPress={() => handleRoomPress(item.id)}>
-      <Card.Cover source={{ uri: item.images[0] }} style={styles.cardImage} />
+      <Card.Cover
+        source={{
+          uri:
+            item.images.length > 0
+              ? item.images[0]
+              : 'https://via.placeholder.com/300x200/6200ee/ffffff?text=No+Image',
+        }}
+        style={styles.cardImage}
+      />
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardHeader}>
           <Text variant='titleMedium' style={styles.roomTitle}>
@@ -223,32 +211,31 @@ export default function TenantHomeScreen() {
 
         {/* Search Section */}
         <View style={styles.searchSection}>
-          <Searchbar
-            placeholder='Search by city, address...'
-            onChangeText={handleSearch}
-            value={searchQuery}
-            style={styles.searchBar}
-            icon='map-marker'
-            onIconPress={handleMapView}
-          />
-
-          <View style={styles.searchActions}>
-            <Button
-              mode='outlined'
-              icon='filter-variant'
-              onPress={handleFilterPress}
-              style={styles.filterButton}
-            >
-              Filters
-            </Button>
-            <Button
-              mode='contained'
-              icon='map'
-              onPress={handleMapView}
-              style={styles.mapButton}
-            >
-              Map
-            </Button>
+          <View style={styles.searchRow}>
+            <Searchbar
+              placeholder='Search by city, address...'
+              onChangeText={handleSearch}
+              value={searchQuery}
+              style={styles.searchBar}
+              icon='map-marker'
+              onIconPress={handleMapView}
+            />
+            <View style={styles.buttonContainer}>
+              <IconButton
+                mode='outlined'
+                icon='filter-variant'
+                size={22}
+                onPress={handleFilterPress}
+                style={styles.iconButton}
+              />
+              <IconButton
+                mode='contained'
+                icon='map'
+                size={22}
+                onPress={handleMapView}
+                style={styles.iconButton}
+              />
+            </View>
           </View>
         </View>
 
@@ -302,22 +289,39 @@ export default function TenantHomeScreen() {
           <Text variant='titleLarge' style={styles.sectionTitle}>
             Recommended for You
           </Text>
-          <FlatList
-            data={rooms}
-            renderItem={renderRoomCard}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-          />
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text>Loading rooms...</Text>
+            </View>
+          ) : error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <Button mode='contained' onPress={fetchRooms}>
+                Retry
+              </Button>
+            </View>
+          ) : rooms.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No rooms available</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={rooms}
+              renderItem={renderRoomCard}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+            />
+          )}
         </View>
       </ScrollView>
 
       {/* Floating Action Button */}
       <FAB
-        icon='plus'
+        icon='filter'
         style={styles.fab}
         onPress={handleFilterPress}
-        label='New Search'
+        label='Filter'
       />
     </SafeAreaView>
   );
@@ -360,19 +364,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginBottom: 10,
   },
-  searchBar: {
-    marginBottom: 16,
-    elevation: 2,
-  },
-  searchActions: {
+  searchRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
-  filterButton: {
+  searchBar: {
     flex: 1,
+    elevation: 2,
   },
-  mapButton: {
-    flex: 1,
+  buttonContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  iconButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 0,
+    padding: 0,
   },
   filtersContainer: {
     padding: 20,
@@ -511,5 +526,29 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorText: {
+    color: '#f44336',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
   },
 });
