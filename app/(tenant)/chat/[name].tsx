@@ -1,4 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   StyleSheet,
@@ -8,126 +14,459 @@ import {
 } from 'react-native';
 import {
   Text,
+  HelperText,
   TextInput,
   IconButton,
   Card,
   Avatar,
   useTheme,
+  ActivityIndicator,
 } from 'react-native-paper';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SockJS from 'sockjs-client';
+import { Client, IMessage } from '@stomp/stompjs';
 
-interface Message {
-  id: number;
+import { buildApiUrl, getApiBaseUrl } from '../../../utils/api';
+import { getAuthToken, getCurrentUser, UserSession } from '../../../utils/auth';
+import { upsertRecentChat } from '../../../utils/chat-history';
+
+interface ChatMessage {
+  id: string;
+  backendId?: number;
   text: string;
   sender: 'user' | 'other';
-  timestamp: string;
+  timestampLabel: string;
+  rawTimestamp: number;
 }
 
+type RawMessage = Record<string, any>;
+
+const normalizeParam = (value?: string | string[]): string | undefined => {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value[value.length - 1] : undefined;
+  }
+  return value;
+};
+
 export default function ChatScreen() {
-  const { name } = useLocalSearchParams<{ name: string }>();
+  const params = useLocalSearchParams<{
+    name?: string | string[];
+    roommateId?: string | string[];
+    backendUserId?: string | string[];
+    roommateEmail?: string | string[];
+    conversationId?: string | string[];
+  }>();
+
   const theme = useTheme();
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Hi! I'm interested in your room listing. Is it still available?",
-      sender: 'user',
-      timestamp: '10:30 AM',
-    },
-    {
-      id: 2,
-      text: 'Hello! Yes, the room is still available. Would you like to schedule a viewing?',
-      sender: 'other',
-      timestamp: '10:35 AM',
-    },
-    {
-      id: 3,
-      text: "That sounds great! I'm free this weekend. What times work for you?",
-      sender: 'user',
-      timestamp: '10:40 AM',
-    },
-    {
-      id: 4,
-      text: 'Saturday at 2 PM or Sunday at 11 AM would work for me. Which do you prefer?',
-      sender: 'other',
-      timestamp: '10:45 AM',
-    },
-  ]);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [connectionState, setConnectionState] = useState<
+    'idle' | 'connecting' | 'connected' | 'error'
+  >('idle');
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      const newMessage: Message = {
-        id: messages.length + 1,
-        text: message.trim(),
-        sender: 'user',
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
-      setMessages((prev) => [...prev, newMessage]);
-      setMessage('');
-      // Scroll to bottom
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const stompClientRef = useRef<Client | null>(null);
+  const pendingMessagesRef = useRef<RawMessage[]>([]);
+
+  const userSession: UserSession | null = useMemo(() => getCurrentUser(), []);
+  const myEmail = userSession?.email ?? '';
+  const myId = userSession?.id;
+
+  const initialName = normalizeParam(params.name);
+  const initialBackendUserId = normalizeParam(params.backendUserId);
+  const initialRoommateEmail = normalizeParam(params.roommateEmail);
+  const initialConversationIdRaw = normalizeParam(params.conversationId);
+  const initialConversationId = initialConversationIdRaw
+    ? Number.parseInt(initialConversationIdRaw, 10)
+    : undefined;
+
+  const [partner, setPartner] = useState<{
+    id?: number;
+    email?: string;
+    name: string;
+    conversationId?: number;
+  }>(() => ({
+    id: initialBackendUserId
+      ? Number.parseInt(initialBackendUserId, 10)
+      : undefined,
+    email: initialRoommateEmail || undefined,
+    name: initialName || 'Roommate',
+    conversationId: initialConversationId,
+  }));
+
+  const conversationId = useMemo(() => {
+    if (!myId || !partner.id) {
+      return undefined;
     }
+    const sorted = [myId, partner.id].sort((a, b) => a - b);
+    return `conv_${sorted[0]}_${sorted[1]}`;
+  }, [myId, partner.id]);
+
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, []);
+
+  const formatTimestamp = (value?: number | string) => {
+    if (value === undefined || value === null) {
+      return { label: '', raw: Date.now() };
+    }
+    const numeric =
+      typeof value === 'number'
+        ? value
+        : Number.parseInt(String(value).trim(), 10);
+    const raw = Number.isNaN(numeric) ? Date.now() : numeric;
+    const date = new Date(raw);
+    return {
+      label: date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      raw,
+    };
   };
 
-  const renderMessage = (msg: Message) => (
-    <View
-      key={msg.id}
-      style={[
-        styles.messageContainer,
-        msg.sender === 'user' ? styles.userMessage : styles.otherMessage,
-      ]}
-    >
-      <Card
-        style={[
-          styles.messageCard,
-          {
-            backgroundColor:
-              msg.sender === 'user'
-                ? theme.colors.primary
-                : theme.colors.surface,
-          },
-        ]}
-      >
-        <Card.Content style={styles.messageContent}>
-          <Text
-            variant='bodyMedium'
-            style={[
-              styles.messageText,
-              {
-                color:
-                  msg.sender === 'user'
-                    ? theme.colors.onPrimary
-                    : theme.colors.onSurface,
-              },
-            ]}
-          >
-            {msg.text}
-          </Text>
-          <Text
-            variant='bodySmall'
-            style={[
-              styles.timestamp,
-              {
-                color:
-                  msg.sender === 'user'
-                    ? theme.colors.onPrimary
-                    : theme.colors.onSurface,
-              },
-            ]}
-          >
-            {msg.timestamp}
-          </Text>
-        </Card.Content>
-      </Card>
-    </View>
+  const mapBackendMessage = useCallback(
+    (payload: Record<string, any>): ChatMessage => {
+      const { label, raw } = formatTimestamp(payload.timestamp);
+      const senderIdentifier =
+        payload.senderName ?? payload.senderEmail ?? payload.senderId;
+      const isUserMessage =
+        senderIdentifier &&
+        typeof senderIdentifier === 'string' &&
+        myEmail &&
+        senderIdentifier.toLowerCase() === myEmail.toLowerCase();
+
+      return {
+        id: payload.id ? String(payload.id) : `msg-${raw}-${Math.random()}`,
+        backendId: payload.id,
+        text: payload.message ?? '',
+        sender: isUserMessage ? 'user' : 'other',
+        timestampLabel: label,
+        rawTimestamp: raw,
+      };
+    },
+    [myEmail],
   );
+
+  const fetchPartnerDetails = useCallback(async () => {
+    if (partner.email || !partner.id) {
+      return;
+    }
+    const token = getAuthToken();
+    if (!token) {
+      setError(
+        'Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại để tiếp tục trò chuyện.',
+      );
+      return;
+    }
+    try {
+      const response = await fetch(
+        buildApiUrl(`/owner/get-users/${partner.id}`),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        },
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Không thể lấy thông tin người dùng (mã ${response.status}).`,
+        );
+      }
+      const data = await response.json();
+      const usersList = Array.isArray(data?.usersList)
+        ? data.usersList
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
+      if (usersList.length > 0) {
+        const [user] = usersList;
+        setPartner((prev) => ({
+          id: prev.id,
+          email: user.email ?? prev.email,
+          name: user.fullName ?? prev.name,
+          conversationId: prev.conversationId,
+        }));
+      }
+    } catch (err) {
+      console.warn('Không thể tải thông tin người dùng:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể tải thông tin người dùng.',
+      );
+    }
+  }, [partner.email, partner.id]);
+
+  useEffect(() => {
+    fetchPartnerDetails();
+  }, [fetchPartnerDetails]);
+
+  const updateRecentChat = useCallback(
+    (latest?: ChatMessage) => {
+      if (!partner.name) {
+        return;
+      }
+      void upsertRecentChat({
+        conversationId: partner.conversationId ?? initialConversationId,
+        partnerId: partner.id,
+        partnerEmail: partner.email,
+        partnerName: partner.name,
+        lastMessagePreview: latest?.text ?? partner.email ?? undefined,
+        lastTimestamp: latest?.rawTimestamp ?? Date.now(),
+      });
+    },
+    [
+      partner.email,
+      partner.id,
+      partner.name,
+      partner.conversationId,
+      initialConversationId,
+    ],
+  );
+
+  const fetchChatHistory = useCallback(async () => {
+    if (!myEmail || (!partner.email && !partner.id)) {
+      return;
+    }
+    const token = getAuthToken();
+    if (!token) {
+      setError(
+        'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem lịch sử trò chuyện.',
+      );
+      return;
+    }
+
+    const receiverIdentifier = partner.email ?? String(partner.id);
+    const url = buildApiUrl(
+      `/messages/api/messages/history/${encodeURIComponent(myEmail)}/${encodeURIComponent(receiverIdentifier)}`,
+    );
+
+    setHistoryLoading(true);
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Không thể tải lịch sử trò chuyện (mã ${response.status}).`,
+        );
+      }
+      const data = await response.json();
+      const parsedData = data as { data?: RawMessage[] };
+      const rawMessages: RawMessage[] = Array.isArray(data)
+        ? (data as RawMessage[])
+        : Array.isArray(parsedData?.data)
+          ? (parsedData.data ?? [])
+          : [];
+
+      const mapped = rawMessages
+        .filter(Boolean)
+        .map((msg) => mapBackendMessage(msg))
+        .sort((a, b) => a.rawTimestamp - b.rawTimestamp);
+      setMessages(mapped);
+      if (mapped.length > 0) {
+        updateRecentChat(mapped[mapped.length - 1]);
+      } else {
+        updateRecentChat();
+      }
+      setError('');
+    } catch (err) {
+      console.error('Lỗi tải lịch sử trò chuyện:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể tải lịch sử trò chuyện.',
+      );
+    } finally {
+      setHistoryLoading(false);
+      scrollToBottom();
+    }
+  }, [mapBackendMessage, myEmail, partner.email, partner.id, scrollToBottom]);
+
+  const handleIncomingMessage = useCallback(
+    (messageEvent: IMessage) => {
+      try {
+        const payload = JSON.parse(messageEvent.body);
+        const mapped = mapBackendMessage(payload);
+        setMessages((prev) => {
+          const exists =
+            mapped.backendId !== undefined &&
+            prev.some(
+              (item) =>
+                item.backendId !== undefined &&
+                item.backendId === mapped.backendId,
+            );
+          if (exists) {
+            return prev;
+          }
+          const next = [...prev, mapped].sort(
+            (a, b) => a.rawTimestamp - b.rawTimestamp,
+          );
+          updateRecentChat(mapped);
+          return next;
+        });
+        scrollToBottom();
+      } catch (err) {
+        console.error('Không thể parse tin nhắn đến:', err);
+      }
+    },
+    [mapBackendMessage, scrollToBottom, updateRecentChat],
+  );
+
+  const flushPendingMessages = useCallback(() => {
+    const client = stompClientRef.current;
+    if (!client || !client.active) {
+      return;
+    }
+    pendingMessagesRef.current.forEach((payload: RawMessage) => {
+      client.publish({
+        destination: '/app/private-message',
+        body: JSON.stringify(payload),
+      });
+    });
+    pendingMessagesRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (!myEmail || !partner.email) {
+      return;
+    }
+    setConnectionState('connecting');
+
+    const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
+    const socketUrl = `${baseUrl}/ws?username=${encodeURIComponent(myEmail)}`;
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(socketUrl),
+      connectHeaders: {
+        username: myEmail,
+      },
+      debug: () => {},
+      reconnectDelay: 5000,
+    });
+
+    client.onConnect = () => {
+      setConnectionState('connected');
+      setError('');
+      fetchChatHistory();
+      flushPendingMessages();
+
+      const privateQueue = `/user/${myEmail}/private`;
+      client.subscribe(privateQueue, handleIncomingMessage);
+    };
+
+    client.onStompError = (frame) => {
+      console.error('STOMP error:', frame);
+      setConnectionState('error');
+      setError(frame.body || 'Kết nối chat gặp lỗi.');
+    };
+
+    client.onWebSocketClose = () => {
+      setConnectionState('error');
+    };
+
+    stompClientRef.current = client;
+    client.activate();
+
+    return () => {
+      pendingMessagesRef.current = [];
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate();
+      }
+      stompClientRef.current = null;
+    };
+  }, [
+    myEmail,
+    partner.email,
+    fetchChatHistory,
+    flushPendingMessages,
+    handleIncomingMessage,
+  ]);
+
+  const handleSendMessage = useCallback(() => {
+    const trimmed = message.trim();
+    if (!trimmed || !myEmail || !partner.email || !myId || !partner.id) {
+      return;
+    }
+
+    const now = Date.now();
+    const { label } = formatTimestamp(now);
+    const outgoingMessage: ChatMessage = {
+      id: `local-${now}`,
+      text: trimmed,
+      sender: 'user',
+      timestampLabel: label,
+      rawTimestamp: now,
+    };
+
+    setMessages((prev) => [...prev, outgoingMessage]);
+    setMessage('');
+    scrollToBottom();
+    updateRecentChat(outgoingMessage);
+
+    const payload = {
+      senderName: myEmail,
+      senderId: myId,
+      receiverName: partner.email,
+      receiverId: partner.id,
+      message: trimmed,
+      status: 'MESSAGE',
+      type: 'PRIVATE',
+      conversationId: conversationId ?? undefined,
+    };
+
+    const client = stompClientRef.current;
+    if (client && client.connected) {
+      client.publish({
+        destination: '/app/private-message',
+        body: JSON.stringify(payload),
+      });
+    } else {
+      pendingMessagesRef.current.push(payload);
+      if (client && !client.active) {
+        client.activate();
+      }
+    }
+  }, [
+    conversationId,
+    message,
+    myEmail,
+    myId,
+    partner.email,
+    partner.id,
+    scrollToBottom,
+    updateRecentChat,
+  ]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, scrollToBottom]);
+
+  const partnerInitial = partner.name?.charAt(0) || 'U';
+
+  if (!userSession) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.container, styles.loadingState]}>
+          <HelperText type='error' visible>
+            Vui lòng đăng nhập để sử dụng tính năng chat.
+          </HelperText>
+          <IconButton icon='arrow-left' onPress={() => router.back()} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -142,20 +481,23 @@ export default function ChatScreen() {
             size={24}
             onPress={() => router.back()}
           />
-          <Avatar.Text size={40} label={name?.charAt(0) || 'U'} />
+          <Avatar.Text size={40} label={partnerInitial} />
           <View style={styles.headerInfo}>
             <Text variant='titleMedium' style={styles.contactName}>
-              {name || 'User'}
+              {partner.name}
             </Text>
             <Text variant='bodySmall' style={styles.onlineStatus}>
-              Online
+              {connectionState === 'connected'
+                ? 'Online'
+                : connectionState === 'connecting'
+                  ? 'Đang kết nối...'
+                  : 'Đang ngoại tuyến'}
             </Text>
           </View>
           <IconButton
             icon='phone'
             size={24}
             onPress={() => {
-              // Handle voice call
               console.log('Voice call');
             }}
           />
@@ -163,11 +505,16 @@ export default function ChatScreen() {
             icon='video'
             size={24}
             onPress={() => {
-              // Handle video call
               console.log('Video call');
             }}
           />
         </View>
+
+        {error ? (
+          <HelperText type='error' visible style={styles.helperText}>
+            {error}
+          </HelperText>
+        ) : null}
 
         {/* Messages */}
         <ScrollView
@@ -178,14 +525,75 @@ export default function ChatScreen() {
             scrollViewRef.current?.scrollToEnd({ animated: true })
           }
         >
-          {messages.map(renderMessage)}
+          {historyLoading && messages.length === 0 ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator animating size='large' />
+              <Text style={styles.loadingText}>
+                Đang tải lịch sử trò chuyện...
+              </Text>
+            </View>
+          ) : null}
+          {messages.map((item) => (
+            <View
+              key={item.id}
+              style={[
+                styles.messageContainer,
+                item.sender === 'user'
+                  ? styles.userMessage
+                  : styles.otherMessage,
+              ]}
+            >
+              <Card
+                style={[
+                  styles.messageCard,
+                  {
+                    backgroundColor:
+                      item.sender === 'user'
+                        ? theme.colors.primary
+                        : theme.colors.surface,
+                  },
+                ]}
+              >
+                <Card.Content style={styles.messageContent}>
+                  <Text
+                    variant='bodyMedium'
+                    style={[
+                      styles.messageText,
+                      {
+                        color:
+                          item.sender === 'user'
+                            ? theme.colors.onPrimary
+                            : theme.colors.onSurface,
+                      },
+                    ]}
+                  >
+                    {item.text}
+                  </Text>
+                  <Text
+                    variant='bodySmall'
+                    style={[
+                      styles.timestamp,
+                      {
+                        color:
+                          item.sender === 'user'
+                            ? theme.colors.onPrimary
+                            : theme.colors.onSurface,
+                      },
+                    ]}
+                  >
+                    {item.timestampLabel}
+                  </Text>
+                </Card.Content>
+              </Card>
+            </View>
+          ))}
         </ScrollView>
 
         {/* Message Input */}
         <View style={styles.inputContainer}>
           <TextInput
             mode='outlined'
-            placeholder='Type a message...'
+            placeholder='Nhập tin nhắn...'
             value={message}
             onChangeText={setMessage}
             style={styles.textInput}
@@ -262,6 +670,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     opacity: 0.7,
   },
+  helperText: {
+    marginHorizontal: 16,
+  },
   inputContainer: {
     padding: 16,
     backgroundColor: '#fff',
@@ -270,5 +681,16 @@ const styles = StyleSheet.create({
   },
   textInput: {
     backgroundColor: '#fff',
+  },
+  loadingState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    opacity: 0.7,
   },
 });

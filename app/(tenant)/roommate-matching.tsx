@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import {
   Text,
   Card,
@@ -8,12 +8,15 @@ import {
   Avatar,
   ProgressBar,
   Searchbar,
+  HelperText,
 } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Roommate {
   id: string;
+  backendUserId?: number;
+  email?: string;
   name: string;
   age: number;
   occupation: string;
@@ -26,40 +29,155 @@ interface Roommate {
   city: string;
 }
 
-const mockRoommates: Roommate[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    age: 24,
-    occupation: 'Software Engineer',
-    hometown: 'Los Angeles',
-    avatar: 'https://via.placeholder.com/100x100',
-    compatibilityRate: 92,
-    habits: ['Non-smoker', 'Early bird', 'Fitness enthusiast'],
-    lifestyle: ['Modern & Tech-savvy', 'Minimalist & Clean'],
-    description:
-      'I love coding, hiking, and cooking healthy meals. Looking for a clean and quiet roommate.',
-    city: 'San Francisco',
-  },
-  {
-    id: '2',
-    name: 'Mike Chen',
-    age: 26,
-    occupation: 'Graphic Designer',
-    hometown: 'Seattle',
-    avatar: 'https://via.placeholder.com/100x100',
-    compatibilityRate: 87,
-    habits: ['Non-smoker', 'Night owl', 'Social person'],
-    lifestyle: ['Social & Outgoing', 'Modern & Tech-savvy'],
-    description:
-      'Creative professional who enjoys good music, movies, and meeting new people.',
-    city: 'San Francisco',
-  },
-];
+const transformApiRoommates = (data: unknown): Roommate[] => {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  const currentYear = new Date().getFullYear();
+
+  const pickValue = (item: Record<string, unknown>, keys: string[]) => {
+    for (const key of keys) {
+      const value = item[key];
+      if (value !== undefined && value !== null && value !== '') {
+        return value;
+      }
+    }
+    return undefined;
+  };
+
+  return data.map((entry, index) => {
+    const item = (entry ?? {}) as Record<string, unknown>;
+    const backendUserIdRaw = pickValue(item, ['userId', 'user_id', 'id']);
+    const backendUserId =
+      typeof backendUserIdRaw === 'number'
+        ? backendUserIdRaw
+        : Number.parseInt(String(backendUserIdRaw ?? ''), 10);
+
+    const emailValue = pickValue(item, ['email', 'userEmail', 'username']);
+
+    const rawHobbies =
+      pickValue(item, ['hobbies', 'habit_list', 'habit']) ?? item.hobbies;
+    const rawLifestyle =
+      pickValue(item, ['lifestyle', 'lifestyleTags', 'lifestyle_tags']) ??
+      item.lifestyle;
+
+    const parseStringArray = (value: unknown): string[] => {
+      if (Array.isArray(value)) {
+        return value
+          .map((v) => (typeof v === 'string' ? v.trim() : ''))
+          .filter(Boolean);
+      }
+      if (typeof value === 'string') {
+        return value
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean);
+      }
+      return [];
+    };
+
+    const yob = pickValue(item, ['yob', 'year_of_birth', 'birthYear']) as
+      | string
+      | number
+      | undefined;
+    const ageFromYob =
+      yob && !Number.isNaN(Number(yob)) ? currentYear - Number(yob) : undefined;
+
+    const compatibilityRaw = Number(
+      (pickValue(item, [
+        'matchScore',
+        'match_score',
+        'compatibility',
+        'compatibilityRate',
+        'compatibility_rate',
+        'score',
+      ]) as number | string | undefined) ?? 85,
+    );
+    const compatibilityRate = Number.isFinite(compatibilityRaw)
+      ? Math.min(Math.max(Math.round(compatibilityRaw), 0), 100)
+      : 85;
+
+    const name =
+      (pickValue(item, ['fullName', 'full_name', 'name', 'username']) as
+        | string
+        | undefined) || '';
+    const hometown =
+      (pickValue(item, ['hometown', 'origin']) as string | undefined) ||
+      'Chưa rõ';
+
+    return {
+      id: String(
+        pickValue(item, ['userId', 'user_id', 'id']) ?? `api-${index}`,
+      ),
+      backendUserId: Number.isFinite(backendUserId) ? backendUserId : undefined,
+      email: typeof emailValue === 'string' ? emailValue : undefined,
+      name: name.length > 0 ? name : `Ứng viên ${index + 1}`,
+      age:
+        typeof item.age === 'number' && !Number.isNaN(item.age)
+          ? item.age
+          : ageFromYob && Number.isFinite(ageFromYob)
+            ? ageFromYob
+            : 0,
+      occupation:
+        (pickValue(item, ['job', 'occupation']) as string | undefined) ||
+        'Đang cập nhật',
+      hometown,
+      avatar:
+        (pickValue(item, ['avatar', 'avatarUrl']) as string | undefined) ||
+        'https://via.placeholder.com/100x100?text=Roomie',
+      compatibilityRate,
+      habits: parseStringArray(rawHobbies),
+      lifestyle: parseStringArray(rawLifestyle),
+      description:
+        (pickValue(item, ['bio', 'description', 'more']) as
+          | string
+          | undefined) || 'Ứng viên phù hợp với tiêu chí của bạn.',
+      city:
+        (pickValue(item, ['city', 'location', 'searching_in']) as
+          | string
+          | undefined) || 'Không rõ',
+    };
+  });
+};
 
 export default function RoommateMatchingScreen() {
-  const [roommates] = useState(mockRoommates);
+  const { recommendations } = useLocalSearchParams<{
+    recommendations?: string | string[];
+  }>();
+  const [roommates, setRoommates] = useState<Roommate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    try {
+      setLoading(true);
+      setError('');
+      const recommendationPayload = Array.isArray(recommendations)
+        ? recommendations[recommendations.length - 1]
+        : recommendations;
+
+      if (recommendationPayload) {
+        const parsed = JSON.parse(recommendationPayload);
+        console.log('Parsed recommendations payload:', parsed);
+        const transformed = transformApiRoommates(parsed);
+        console.log('Transformed roommates:', transformed);
+        setRoommates(transformed);
+      } else {
+        setRoommates([]);
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể đọc dữ liệu gợi ý từ máy chủ.',
+      );
+      setRoommates([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [recommendations]);
 
   const handleRoommatePress = (roommateId: string) => {
     router.push(`./roommate-profile/${roommateId}`);
@@ -67,9 +185,21 @@ export default function RoommateMatchingScreen() {
 
   const handleConnect = (roommateId: string) => {
     const roommate = roommates.find((r) => r.id === roommateId);
-    if (roommate) {
-      router.push(`./chat/${roommate.name}`);
+    if (!roommate) {
+      return;
     }
+
+    router.push({
+      pathname: './chat/[name]',
+      params: {
+        name: roommate.name,
+        roommateId: roommate.id,
+        backendUserId: roommate.backendUserId
+          ? String(roommate.backendUserId)
+          : undefined,
+        roommateEmail: roommate.email,
+      },
+    });
   };
 
   const handleUpdatePreferences = () => {
@@ -208,13 +338,24 @@ export default function RoommateMatchingScreen() {
 
         <View style={styles.statsContainer}>
           <Text style={styles.statsText}>
-            {filteredRoommates.length} potential roommates found
+            {loading
+              ? 'Đang tải gợi ý...'
+              : `${filteredRoommates.length} potential roommates found`}
           </Text>
           <Text style={styles.aiText}>Powered by AI Matching</Text>
         </View>
+        {error ? (
+          <HelperText type='error' visible>
+            {error}
+          </HelperText>
+        ) : null}
       </View>
 
-      {filteredRoommates.length === 0 ? (
+      {loading ? (
+        <View style={styles.loadingState}>
+          <ActivityIndicator size='large' />
+        </View>
+      ) : filteredRoommates.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>No Roommates Found</Text>
           <Text variant='bodyMedium' style={styles.emptySubtitle}>
@@ -234,7 +375,7 @@ export default function RoommateMatchingScreen() {
         <FlatList
           data={filteredRoommates}
           renderItem={renderRoommateCard}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
         />
@@ -392,5 +533,11 @@ const styles = StyleSheet.create({
   },
   preferencesButton: {
     paddingHorizontal: 24,
+  },
+  loadingState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
   },
 });
