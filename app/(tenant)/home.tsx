@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import {
   Text,
   Searchbar,
@@ -12,8 +19,7 @@ import {
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { roomService, Room as RoomModel } from '../../services/room.service';
-import { getStoredToken } from '../../utils/auth-storage';
+import { getRooms, mapRoomDTOToUIRoom } from '../../utils/rooms';
 
 interface Room {
   id: string;
@@ -38,47 +44,36 @@ interface Room {
 export default function TenantHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch rooms on component mount
+  // Fetch rooms from API on component mount
   useEffect(() => {
-    checkAuthAndFetchRooms();
+    fetchRooms();
   }, []);
-
-  const checkAuthAndFetchRooms = async () => {
-    try {
-      // Check if user is authenticated
-      const token = await getStoredToken();
-      if (!token) {
-        // User not authenticated, redirect to login
-        router.replace('/(auth)/login');
-        return;
-      }
-
-      // User is authenticated, fetch rooms
-      await fetchRooms();
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      router.replace('/(auth)/login');
-    }
-  };
 
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const fetchedRooms = await roomService.getAllRooms();
-      setRooms(fetchedRooms);
-    } catch (err) {
-      console.error('Failed to fetch rooms:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load rooms');
-      // Fallback to empty array
-      setRooms([]);
+      const roomsData = await getRooms();
+      const mappedRooms = roomsData.map(mapRoomDTOToUIRoom);
+      setRooms(mappedRooms);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load rooms. Please check your connection and try again.',
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchRooms();
+    setRefreshing(false);
   };
 
   const removeFilter = (filter: string) => {
@@ -110,14 +105,19 @@ export default function TenantHomeScreen() {
     router.push('./map');
   };
 
+  const handleRoommateForm = () => {
+    router.push('./roommate-form');
+  };
+
+  const handleChatHistory = () => {
+    router.push('./chat-history');
+  };
+
   const renderRoomCard = ({ item }: { item: Room }) => (
     <Card style={styles.roomCard} onPress={() => handleRoomPress(item.id)}>
       <Card.Cover
         source={{
-          uri:
-            item.images.length > 0
-              ? item.images[0]
-              : 'https://via.placeholder.com/300x200/6200ee/ffffff?text=No+Image',
+          uri: 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg',
         }}
         style={styles.cardImage}
       />
@@ -142,20 +142,11 @@ export default function TenantHomeScreen() {
 
         <View style={styles.roomDetails}>
           <Text variant='headlineSmall' style={styles.priceText}>
-            ${item.price}/month
+            {item.price}đ/month
           </Text>
           <Text variant='bodyMedium' style={styles.areaText}>
             {item.area}m² • {item.roomType}
           </Text>
-        </View>
-
-        {/* Rating and Reviews */}
-        <View style={styles.ratingContainer}>
-          <Text style={styles.ratingText}>⭐ {item.rating}</Text>
-          <Text style={styles.reviewText}>({item.reviewCount} reviews)</Text>
-          {item.landlord.verified && (
-            <Text style={styles.verifiedText}>✓ Verified Host</Text>
-          )}
         </View>
 
         {/* Availability and Distance */}
@@ -200,42 +191,50 @@ export default function TenantHomeScreen() {
               </Text>
             </View>
           </View>
-          <Button
-            mode='text'
-            icon='account-circle'
-            onPress={() => router.push('/(tenant)/profile')}
-          >
-            Profile
-          </Button>
+          <View style={styles.headerActions}>
+            <IconButton
+              icon='message-text-outline'
+              size={26}
+              onPress={handleChatHistory}
+            />
+            <Button
+              mode='text'
+              icon='account-circle'
+              onPress={() => router.push('/(tenant)/profile')}
+            >
+              Profile
+            </Button>
+          </View>
         </View>
 
         {/* Search Section */}
         <View style={styles.searchSection}>
-          <View style={styles.searchRow}>
-            <Searchbar
-              placeholder='Search by city, address...'
-              onChangeText={handleSearch}
-              value={searchQuery}
-              style={styles.searchBar}
-              icon='map-marker'
-              onIconPress={handleMapView}
-            />
-            <View style={styles.buttonContainer}>
-              <IconButton
-                mode='outlined'
-                icon='filter-variant'
-                size={22}
-                onPress={handleFilterPress}
-                style={styles.iconButton}
-              />
-              <IconButton
-                mode='contained'
-                icon='map'
-                size={22}
-                onPress={handleMapView}
-                style={styles.iconButton}
-              />
-            </View>
+          <Searchbar
+            placeholder='Search by city, address...'
+            onChangeText={handleSearch}
+            value={searchQuery}
+            style={styles.searchBar}
+            icon='map-marker'
+            onIconPress={handleMapView}
+          />
+
+          <View style={styles.searchActions}>
+            <Button
+              mode='outlined'
+              icon='filter-variant'
+              onPress={handleFilterPress}
+              style={styles.filterButton}
+            >
+              Filters
+            </Button>
+            <Button
+              mode='contained'
+              icon='map'
+              onPress={handleMapView}
+              style={styles.mapButton}
+            >
+              Map
+            </Button>
           </View>
         </View>
 
@@ -268,7 +267,7 @@ export default function TenantHomeScreen() {
             <Button
               mode='contained-tonal'
               icon='account-multiple'
-              onPress={() => router.push('/(tenant)/roommate-matching')}
+              onPress={handleRoommateForm}
               style={styles.actionButton}
             >
               Find Roommate
@@ -291,18 +290,21 @@ export default function TenantHomeScreen() {
           </Text>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text>Loading rooms...</Text>
-            </View>
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-              <Button mode='contained' onPress={fetchRooms}>
-                Retry
-              </Button>
+              <ActivityIndicator size='large' color='#6200ee' />
+              <Text style={styles.loadingText}>Loading rooms...</Text>
             </View>
           ) : rooms.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No rooms available</Text>
+              <Text style={styles.emptyText}>
+                No rooms available at the moment
+              </Text>
+              <Button
+                mode='contained'
+                onPress={fetchRooms}
+                style={styles.retryButton}
+              >
+                Retry
+              </Button>
             </View>
           ) : (
             <FlatList
@@ -311,6 +313,8 @@ export default function TenantHomeScreen() {
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               scrollEnabled={false}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
             />
           )}
         </View>
@@ -318,10 +322,10 @@ export default function TenantHomeScreen() {
 
       {/* Floating Action Button */}
       <FAB
-        icon='filter'
+        icon='plus'
         style={styles.fab}
         onPress={handleFilterPress}
-        label='Filter'
+        label='New Search'
       />
     </SafeAreaView>
   );
@@ -351,6 +355,11 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     flex: 1,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   greeting: {
     fontSize: 14,
     opacity: 0.7,
@@ -364,30 +373,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginBottom: 10,
   },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   searchBar: {
-    flex: 1,
+    marginBottom: 16,
     elevation: 2,
   },
-  buttonContainer: {
-    display: 'flex',
+  searchActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
+    gap: 12,
   },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: 0,
-    padding: 0,
+  filterButton: {
+    flex: 1,
+  },
+  mapButton: {
+    flex: 1,
   },
   filtersContainer: {
     padding: 20,
@@ -528,27 +526,27 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   loadingContainer: {
-    padding: 20,
+    padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  errorContainer: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    color: '#f44336',
-    marginBottom: 16,
-    textAlign: 'center',
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
   },
   emptyContainer: {
-    padding: 20,
+    padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyText: {
-    color: '#666',
     fontSize: 16,
+    opacity: 0.7,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 8,
   },
 });

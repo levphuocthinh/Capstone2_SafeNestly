@@ -7,14 +7,11 @@ import {
   Card,
   Divider,
   useTheme,
-  Chip,
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authenticateUser } from '../../services/auth.service';
 import { getHomeRouteForRole } from '../../utils/auth-storage';
-
-const { width } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

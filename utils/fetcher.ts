@@ -38,6 +38,10 @@ export const api = ky.create({
         if (token) {
           request.headers.set('Authorization', `Bearer ${token}`);
         }
+        const isDev = process.env.NODE_ENV === 'development';
+        if (isDev) {
+          request.headers.set('ngrok-skip-browser-warning', 'true');
+        }
       },
     ],
     afterResponse: [
@@ -68,6 +72,7 @@ export const api = ky.create({
               }
             } catch (refreshError) {
               console.error('Token refresh failed:', refreshError);
+              await clearStoredAuth();
             }
           }
 

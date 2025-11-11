@@ -67,6 +67,7 @@ export const authenticateUser = async (
         refreshToken: data.refreshToken,
       };
     } else {
+      await clearStoredAuth();
       return {
         success: false,
         error: data.message || data.error || 'Login failed',
@@ -74,6 +75,7 @@ export const authenticateUser = async (
     }
   } catch (error) {
     console.error('Login error:', error);
+    await clearStoredAuth();
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error occurred',
