@@ -8,6 +8,7 @@ import {
   Chip,
   Avatar,
   FAB,
+  IconButton,
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -130,6 +131,14 @@ export default function TenantHomeScreen() {
     router.push('./map');
   };
 
+  const handleRoommateForm = () => {
+    router.push('./roommate-form');
+  };
+
+  const handleChatHistory = () => {
+    router.push('./chat-history');
+  };
+
   const renderRoomCard = ({ item }: { item: Room }) => (
     <Card style={styles.roomCard} onPress={() => handleRoomPress(item.id)}>
       <Card.Cover source={{ uri: item.images[0] }} style={styles.cardImage} />
@@ -212,13 +221,20 @@ export default function TenantHomeScreen() {
               </Text>
             </View>
           </View>
-          <Button
-            mode='text'
-            icon='account-circle'
-            onPress={() => router.push('/(tenant)/profile')}
-          >
-            Profile
-          </Button>
+          <View style={styles.headerActions}>
+            <IconButton
+              icon='message-text-outline'
+              size={26}
+              onPress={handleChatHistory}
+            />
+            <Button
+              mode='text'
+              icon='account-circle'
+              onPress={() => router.push('/(tenant)/profile')}
+            >
+              Profile
+            </Button>
+          </View>
         </View>
 
         {/* Search Section */}
@@ -281,7 +297,7 @@ export default function TenantHomeScreen() {
             <Button
               mode='contained-tonal'
               icon='account-multiple'
-              onPress={() => router.push('/(tenant)/roommate-matching')}
+              onPress={handleRoommateForm}
               style={styles.actionButton}
             >
               Find Roommate
@@ -346,6 +362,11 @@ const styles = StyleSheet.create({
   userText: {
     marginLeft: 12,
     flex: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   greeting: {
     fontSize: 14,
