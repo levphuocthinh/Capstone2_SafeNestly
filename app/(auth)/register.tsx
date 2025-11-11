@@ -12,6 +12,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../../components/ui/back-button';
+import { registerUser } from '../../services/auth.service';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -60,24 +61,25 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      // In a real app, you'd send registration data to your backend
-      const userData = {
-        fullName,
-        email,
-        phone,
-        birthYear: parseInt(birthYear),
-        gender,
-        hometown,
-        occupation,
-        userType,
+      const result = await registerUser({
+        email: email.trim(),
         password,
-      };
+        fullName: fullName.trim(),
+        role: userType.toUpperCase() as 'TENANT' | 'LANDLORD' | 'GUEST',
+        phone: phone.trim(),
+        gender: gender.toUpperCase() as 'MALE' | 'FEMALE' | 'OTHER',
+        dob: birthYear, // Using birth year as string for now
+        bio: `${occupation} from ${hometown}`, // Combine occupation and hometown for bio
+      });
 
-      // Store user data for profile setup (in real app, this would be handled by backend)
-      console.log('User registration data:', userData);
-
-      // Navigate to profile setup for detailed onboarding
-      router.replace('./profile-setup');
+      if (result.success) {
+        // Registration successful, navigate to login
+        router.replace('/(auth)/login');
+      } else {
+        setValidationErrors({
+          general: result.error || 'Registration failed. Please try again.',
+        });
+      }
     } catch (error) {
       console.error('Registration error:', error);
       setValidationErrors({

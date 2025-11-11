@@ -7,17 +7,11 @@ import {
   Card,
   Divider,
   useTheme,
-  Chip,
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  authenticateUser,
-  getHomeRouteForRole,
-  getTestAccounts,
-} from '../../utils/auth';
-
-const { width } = Dimensions.get('window');
+import { authenticateUser } from '../../services/auth.service';
+import { getHomeRouteForRole } from '../../utils/auth-storage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -163,92 +157,6 @@ export default function LoginScreen() {
                 💡 Quick Access: Use test accounts below for instant demo
               </Text>
             </View>
-          </Card.Content>
-        </Card>
-
-        {/* Enhanced Test Accounts Section */}
-        <Card style={styles.testAccountsCard} elevation={4}>
-          <Card.Content>
-            <View style={styles.testAccountsHeader}>
-              <Text variant='titleLarge' style={styles.testAccountsTitle}>
-                🚀 Demo Accounts
-              </Text>
-              <Text variant='bodyMedium' style={styles.testAccountsSubtitle}>
-                Experience different user roles instantly
-              </Text>
-            </View>
-
-            {getTestAccounts().map((account, index) => {
-              const getRoleColor = (role: string) => {
-                switch (role) {
-                  case 'tenant':
-                    return '#E3F2FD';
-                  case 'landlord':
-                    return '#E8F5E8';
-                  default:
-                    return '#FFF3E0';
-                }
-              };
-
-              return (
-                <View key={account.email} style={styles.testAccountItem}>
-                  <View style={styles.testAccountContent}>
-                    <View style={styles.testAccountHeader}>
-                      <Chip
-                        mode='outlined'
-                        compact
-                        style={[
-                          styles.roleChip,
-                          { backgroundColor: getRoleColor(account.role) },
-                        ]}
-                        textStyle={styles.roleChipText}
-                      >
-                        {account.role.toUpperCase()}
-                      </Chip>
-                      <Text variant='titleMedium' style={styles.accountName}>
-                        {account.name}
-                      </Text>
-                    </View>
-
-                    <Text
-                      variant='bodyMedium'
-                      style={styles.accountDescription}
-                    >
-                      {account.description}
-                    </Text>
-
-                    <View style={styles.credentialsContainer}>
-                      <View style={styles.credentialItem}>
-                        <Text style={styles.credentialLabel}>Email:</Text>
-                        <Text style={styles.credentialValue}>
-                          {account.email}
-                        </Text>
-                      </View>
-                      <View style={styles.credentialItem}>
-                        <Text style={styles.credentialLabel}>Password:</Text>
-                        <Text style={styles.credentialValue}>
-                          {account.password}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Button
-                      mode='contained-tonal'
-                      compact
-                      onPress={() => {
-                        setEmail(account.email);
-                        setPassword(account.password);
-                      }}
-                      style={styles.useAccountButton}
-                      contentStyle={styles.useAccountButtonContent}
-                      icon='account-arrow-right'
-                    >
-                      Use Account
-                    </Button>
-                  </View>
-                </View>
-              );
-            })}
           </Card.Content>
         </Card>
 
@@ -436,96 +344,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,
-  },
-  testAccountsCard: {
-    marginBottom: 24,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-  },
-  testAccountsHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  testAccountsTitle: {
-    textAlign: 'center',
-    marginBottom: 8,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  testAccountsSubtitle: {
-    textAlign: 'center',
-    opacity: 0.7,
-    lineHeight: 20,
-  },
-  testAccountItem: {
-    marginBottom: 20,
-    borderRadius: 12,
-    backgroundColor: '#fafafa',
-    overflow: 'hidden',
-  },
-  testAccountContent: {
-    padding: 20,
-  },
-  testAccountHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  roleChip: {
-    marginRight: 12,
-    borderWidth: 1.5,
-  },
-  roleChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  accountName: {
-    fontWeight: '600',
-    flex: 1,
-    fontSize: 16,
-  },
-  accountDescription: {
-    marginBottom: 16,
-    opacity: 0.8,
-    lineHeight: 20,
-  },
-  credentialsContainer: {
-    marginBottom: 16,
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#6200ee',
-  },
-  credentialItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  credentialLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    opacity: 0.7,
-    minWidth: 70,
-  },
-  credentialValue: {
-    fontSize: 13,
-    fontFamily: 'monospace',
-    backgroundColor: 'white',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    flex: 1,
-    marginLeft: 12,
-    textAlign: 'right',
-  },
-  useAccountButton: {
-    alignSelf: 'flex-start',
-    borderRadius: 8,
-  },
-  useAccountButtonContent: {
-    paddingHorizontal: 8,
   },
   footer: {
     flexDirection: 'row',

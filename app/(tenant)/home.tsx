@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import {
   Text,
   Searchbar,
@@ -12,6 +19,7 @@ import {
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getRooms, mapRoomDTOToUIRoom } from '../../utils/rooms';
 
 interface Room {
   id: string;
@@ -33,74 +41,40 @@ interface Room {
   distanceToCenter: number;
 }
 
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    title: 'Cozy Downtown Apartment',
-    price: 1200,
-    location: 'Downtown, City Center',
-    area: 45,
-    images: [
-      'https://via.placeholder.com/300x200/6200ee/ffffff?text=Modern+Apt',
-    ],
-    amenities: ['WiFi', 'Kitchen', 'Air Conditioning', 'Parking', 'Gym Access'],
-    saved: false,
-    rating: 4.8,
-    reviewCount: 23,
-    landlord: {
-      name: 'Sarah Wilson',
-      verified: true,
-    },
-    availableFrom: 'Available Now',
-    roomType: '1 Bedroom',
-    distanceToCenter: 0.8,
-  },
-  {
-    id: '2',
-    title: 'Modern Studio Near University',
-    price: 800,
-    location: 'University District',
-    area: 35,
-    images: ['https://via.placeholder.com/300x200/4CAF50/ffffff?text=Studio'],
-    amenities: ['WiFi', 'Gym', 'Parking', 'Study Area', 'Laundry'],
-    saved: true,
-    rating: 4.6,
-    reviewCount: 18,
-    landlord: {
-      name: 'Mike Chen',
-      verified: true,
-    },
-    availableFrom: 'Available Dec 1',
-    roomType: 'Studio',
-    distanceToCenter: 2.1,
-  },
-  {
-    id: '3',
-    title: 'Spacious Shared Room',
-    price: 650,
-    location: 'Sunset District',
-    area: 28,
-    images: [
-      'https://via.placeholder.com/300x200/FF9800/ffffff?text=Shared+Room',
-    ],
-    amenities: ['WiFi', 'Kitchen', 'Garden', 'Pet Friendly'],
-    saved: false,
-    rating: 4.4,
-    reviewCount: 12,
-    landlord: {
-      name: 'Alex Johnson',
-      verified: false,
-    },
-    availableFrom: 'Available Jan 15',
-    roomType: 'Shared Room',
-    distanceToCenter: 3.5,
-  },
-];
-
 export default function TenantHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [rooms, setRooms] = useState(mockRooms);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch rooms from API on component mount
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const roomsData = await getRooms();
+      const mappedRooms = roomsData.map(mapRoomDTOToUIRoom);
+      setRooms(mappedRooms);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load rooms. Please check your connection and try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchRooms();
+    setRefreshing(false);
+  };
 
   const removeFilter = (filter: string) => {
     setSelectedFilters((prev) => prev.filter((f) => f !== filter));
@@ -141,7 +115,12 @@ export default function TenantHomeScreen() {
 
   const renderRoomCard = ({ item }: { item: Room }) => (
     <Card style={styles.roomCard} onPress={() => handleRoomPress(item.id)}>
-      <Card.Cover source={{ uri: item.images[0] }} style={styles.cardImage} />
+      <Card.Cover
+        source={{
+          uri: 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg',
+        }}
+        style={styles.cardImage}
+      />
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardHeader}>
           <Text variant='titleMedium' style={styles.roomTitle}>
@@ -163,20 +142,11 @@ export default function TenantHomeScreen() {
 
         <View style={styles.roomDetails}>
           <Text variant='headlineSmall' style={styles.priceText}>
-            ${item.price}/month
+            {item.price}đ/month
           </Text>
           <Text variant='bodyMedium' style={styles.areaText}>
             {item.area}m² • {item.roomType}
           </Text>
-        </View>
-
-        {/* Rating and Reviews */}
-        <View style={styles.ratingContainer}>
-          <Text style={styles.ratingText}>⭐ {item.rating}</Text>
-          <Text style={styles.reviewText}>({item.reviewCount} reviews)</Text>
-          {item.landlord.verified && (
-            <Text style={styles.verifiedText}>✓ Verified Host</Text>
-          )}
         </View>
 
         {/* Availability and Distance */}
@@ -318,13 +288,35 @@ export default function TenantHomeScreen() {
           <Text variant='titleLarge' style={styles.sectionTitle}>
             Recommended for You
           </Text>
-          <FlatList
-            data={rooms}
-            renderItem={renderRoomCard}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-          />
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size='large' color='#6200ee' />
+              <Text style={styles.loadingText}>Loading rooms...</Text>
+            </View>
+          ) : rooms.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                No rooms available at the moment
+              </Text>
+              <Button
+                mode='contained'
+                onPress={fetchRooms}
+                style={styles.retryButton}
+              >
+                Retry
+              </Button>
+            </View>
+          ) : (
+            <FlatList
+              data={rooms}
+              renderItem={renderRoomCard}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          )}
         </View>
       </ScrollView>
 
@@ -532,5 +524,29 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  emptyContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    opacity: 0.7,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 8,
   },
 });
