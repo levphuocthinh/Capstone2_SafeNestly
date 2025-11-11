@@ -71,7 +71,6 @@ export function MapSearch({
     try {
       console.log('[MapSearch] Searching for:', query.trim());
       const res = await searchLocation(query.trim());
-      console.log('[MapSearch] searchLocation response:', res);
       onResult?.(res);
       if (res.status !== 'SUCCESS' || !res.location) {
         setError(res.message || 'Location not found');

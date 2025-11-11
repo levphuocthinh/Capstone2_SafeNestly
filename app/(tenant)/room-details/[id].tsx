@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import {
   Text,
   Card,
@@ -8,120 +15,132 @@ import {
   Avatar,
   Divider,
   List,
+  Portal,
+  IconButton,
+  Modal,
 } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { roomService, RoomDTO } from '../../../services/room.service';
+import { mapsService, LocationResponse } from '../../../services/maps.service';
+import { vatService, SafetyScoreResponse } from '../../../services/vat.service';
+import Markdown from 'react-native-markdown-display';
 
 const { width } = Dimensions.get('window');
 
-interface RoomDetails {
-  id: string;
-  title: string;
-  price: number;
-  location: string;
-  area: number;
-  images: string[];
-  amenities: string[];
-  description: string;
-  landlord: {
-    name: string;
-    avatar: string;
-    rating: number;
-    verified: boolean;
-    responseTime: string;
-    joinedDate: string;
-  };
-  safety: {
-    securityLevel: 'Low' | 'Medium' | 'High' | 'Very High';
-    securityScore: number; // 1-10
-    crimeRate: 'Low' | 'Medium' | 'High';
-    hospitalDistance: string;
-    busStationDistance: string;
-    policeStationDistance: string;
-    neighborhoodWatch: boolean;
-    securityCameras: boolean;
-    securedEntrance: boolean;
-    lighting: 'Poor' | 'Fair' | 'Good' | 'Excellent';
-  };
-  neighborhood: {
-    walkability: number; // 1-10
-    transitScore: number; // 1-10
-    bikeScore: number; // 1-10
-    noiseLevel: 'Quiet' | 'Moderate' | 'Busy' | 'Very Busy';
-    demographics: string;
-  };
-  saved: boolean;
-  reviewCount: number;
-  overallRating: number;
-}
-
-const mockRoomDetails: RoomDetails = {
-  id: '1',
-  title: 'Cozy Downtown Apartment',
-  price: 1200,
-  location: 'Downtown, City Center',
-  area: 45,
-  images: [
-    'https://via.placeholder.com/400x300/6200ee/ffffff?text=Living+Room',
-    'https://via.placeholder.com/400x300/4CAF50/ffffff?text=Kitchen',
-    'https://via.placeholder.com/400x300/FF9800/ffffff?text=Bedroom',
-    'https://via.placeholder.com/400x300/2196F3/ffffff?text=Bathroom',
-    'https://via.placeholder.com/400x300/9C27B0/ffffff?text=Balcony',
-  ],
-  amenities: [
-    'WiFi',
-    'Kitchen',
-    'Air Conditioning',
-    'Washing Machine',
-    'Balcony',
-    'Parking',
-    'Gym Access',
-    'Security System',
-  ],
-  description:
-    'Beautiful and modern apartment in the heart of downtown. Perfect for young professionals or students. Close to public transportation, restaurants, and shopping centers. The building features 24/7 security, modern amenities, and excellent transport links.',
-  landlord: {
-    name: 'John Smith',
-    avatar: 'https://via.placeholder.com/80x80',
-    rating: 4.8,
-    verified: true,
-    responseTime: 'Usually responds within 1 hour',
-    joinedDate: 'Member since 2019',
-  },
-  safety: {
-    securityLevel: 'High',
-    securityScore: 8.5,
-    crimeRate: 'Low',
-    hospitalDistance: '0.5 km',
-    busStationDistance: '0.2 km',
-    policeStationDistance: '0.8 km',
-    neighborhoodWatch: true,
-    securityCameras: true,
-    securedEntrance: true,
-    lighting: 'Excellent',
-  },
-  neighborhood: {
-    walkability: 9,
-    transitScore: 8,
-    bikeScore: 7,
-    noiseLevel: 'Moderate',
-    demographics: 'Young professionals and students',
-  },
-  saved: false,
-  reviewCount: 34,
-  overallRating: 4.7,
-};
-
 export default function RoomDetailsScreen() {
-  const [room, setRoom] = useState(mockRoomDetails);
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [room, setRoom] = useState<RoomDTO | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [locationData, setLocationData] = useState<LocationResponse | null>(
+    null,
+  );
+  const [showNearbyPlacesModal, setShowNearbyPlacesModal] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [safetyScore, setSafetyScore] = useState<SafetyScoreResponse | null>(
+    null,
+  );
+  const [loadingSafetyScore, setLoadingSafetyScore] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      fetchRoomDetails();
+    }
+  }, [id]);
+
+  const fetchRoomDetails = async () => {
+    try {
+      setLoading(true);
+      const roomData = await roomService.getRoomById(id);
+
+      setRoom(roomData);
+    } catch (error) {
+      console.error('Error fetching room details:', error);
+      Alert.alert('Error', 'Failed to load room details. Please try again.', [
+        { text: 'Go Back', onPress: () => router.back() },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!room) return;
+    const formattedAddress = buildFormattedAddress(room);
+    if (!formattedAddress) return;
+    fetchLocationData(formattedAddress);
+  }, [room]);
+
+  const buildFormattedAddress = (roomData: RoomDTO): string => {
+    const addressStreet = roomData.street || roomData.addressDetails;
+    // Build address from components: street, ward, district, city
+    const addressParts = [
+      addressStreet,
+      roomData.ward,
+      roomData.district,
+      roomData.city,
+    ].filter(Boolean); // Remove undefined/null/empty values
+
+    return addressParts.join(', ');
+  };
+
+  const fetchLocationData = async (address: string) => {
+    try {
+      setLoadingLocation(true);
+      const locationResponse = await mapsService.searchLocation({
+        address: address,
+      });
+      setLocationData(locationResponse);
+    } catch (error) {
+      console.error('Error fetching location data:', error);
+    } finally {
+      setLoadingLocation(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!locationData || !room) return;
+    fetchSafetyScore(room, locationData);
+  }, [room, locationData]);
+
+  const fetchSafetyScore = async (
+    roomData: RoomDTO,
+    location: LocationResponse,
+  ) => {
+    try {
+      setLoadingSafetyScore(true);
+      const safetyResponse = await vatService.getSafetyScore(
+        parseInt(id, 10),
+        roomData,
+        location,
+      );
+      setSafetyScore(safetyResponse);
+    } catch (error) {
+      console.error('Error fetching safety score:', error);
+      // Don't show error alert, just log it - safety score is optional
+    } finally {
+      setLoadingSafetyScore(false);
+    }
+  };
+
+  const handleShowNearbyPlaces = () => {
+    if (locationData?.nearbyPlaces && locationData.nearbyPlaces.length > 0) {
+      setShowNearbyPlacesModal(true);
+    } else {
+      Alert.alert('No Data', 'No nearby places information available.');
+    }
+  };
 
   const handleSaveRoom = () => {
-    setRoom((prev) => ({ ...prev, saved: !prev.saved }));
+    if (!room) return;
+    // TODO: Implement save room functionality with backend
+    Alert.alert('Info', 'Save room functionality coming soon!');
   };
 
   const handleContactLandlord = () => {
-    router.push(`../chat/${room.landlord.name}`);
+    if (!room) return;
+    router.push(`../chat/${room.ownerName || 'Landlord'}`);
   };
 
   const handleCallLandlord = () => {
@@ -131,6 +150,30 @@ export default function RoomDetailsScreen() {
   const handleBack = () => {
     router.back();
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' color='#6200ee' />
+          <Text style={styles.loadingText}>Loading room details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!room) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Room not found</Text>
+          <Button mode='contained' onPress={handleBack}>
+            Go Back
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -145,12 +188,8 @@ export default function RoomDetailsScreen() {
           >
             Back
           </Button>
-          <Button
-            mode='text'
-            icon={room.saved ? 'heart' : 'heart-outline'}
-            onPress={handleSaveRoom}
-          >
-            {room.saved ? 'Saved' : 'Save'}
+          <Button mode='text' icon='heart-outline' onPress={handleSaveRoom}>
+            Save
           </Button>
         </View>
 
@@ -167,16 +206,18 @@ export default function RoomDetailsScreen() {
               setCurrentImageIndex(index);
             }}
           >
-            {room.images.map((image, index) => (
+            {(room.imageUrls || []).map((image: string, index: number) => (
               <Card.Cover
                 key={`image-${room.id}-${index}`}
-                source={{ uri: image }}
+                source={{
+                  uri: 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg',
+                }}
                 style={styles.roomImage}
               />
             ))}
           </ScrollView>
           <View style={styles.imageIndicator}>
-            {room.images.map((image, index) => (
+            {(room.imageUrls || []).map((_: string, index: number) => (
               <View
                 key={`indicator-${room.id}-${index}`}
                 style={[
@@ -199,80 +240,210 @@ export default function RoomDetailsScreen() {
             </Text>
 
             <View style={styles.priceAreaContainer}>
-              <Text style={styles.priceText}>${room.price}/month</Text>
-              <Text style={styles.areaText}>{room.area}m²</Text>
+              <Text style={styles.priceText}>
+                {room.price ? `${room.price}đ` : 'N/A'}/month
+              </Text>
+              <Text style={styles.areaText}>{room.roomSize || 0}m²</Text>
             </View>
+
+            {room.numBedrooms !== undefined &&
+              room.numBathrooms !== undefined && (
+                <Text variant='bodyMedium' style={styles.roomInfo}>
+                  🛏️ {room.numBedrooms} Bedroom
+                  {room.numBedrooms !== 1 ? 's' : ''} • 🚿 {room.numBathrooms}{' '}
+                  Bathroom{room.numBathrooms !== 1 ? 's' : ''}
+                </Text>
+              )}
 
             <Divider style={styles.divider} />
 
             <Text style={styles.sectionTitle}>Description</Text>
             <Text variant='bodyMedium' style={styles.description}>
-              {room.description}
+              {room.description || 'No description available'}
             </Text>
 
-            <Divider style={styles.divider} />
-
-            <Text style={styles.sectionTitle}>Amenities</Text>
-            <View style={styles.amenitiesContainer}>
-              {room.amenities.map((amenity) => (
-                <Chip key={amenity} style={styles.amenityChip}>
-                  {amenity}
-                </Chip>
-              ))}
-            </View>
+            {room.city || room.district || room.ward ? (
+              <>
+                <Divider style={styles.divider} />
+                <Text style={styles.sectionTitle}>Address Details</Text>
+                <Text variant='bodyMedium' style={styles.description}>
+                  {[room.street, room.ward, room.district, room.city]
+                    .filter(Boolean)
+                    .join(', ')}
+                </Text>
+                {room.addressDetails && (
+                  <Text variant='bodySmall' style={styles.addressDetails}>
+                    {room.addressDetails}
+                  </Text>
+                )}
+              </>
+            ) : null}
           </Card.Content>
         </Card>
 
-        {/* Safety Information */}
+        {/* Location & Nearby Places */}
         <Card style={styles.safetyCard}>
           <Card.Content>
-            <Text style={styles.sectionTitle}>Safety Information</Text>
-            <List.Item
-              title='Security Level'
-              description={room.safety.securityLevel}
-              left={(props) => <List.Icon {...props} icon='shield-check' />}
-            />
-            <List.Item
-              title='Nearest Hospital'
-              description={room.safety.hospitalDistance}
-              left={(props) => <List.Icon {...props} icon='hospital-box' />}
-            />
-            <List.Item
-              title='Bus Station'
-              description={room.safety.busStationDistance}
-              left={(props) => <List.Icon {...props} icon='bus' />}
-            />
+            <Text style={styles.sectionTitle}>Location & Nearby Places</Text>
+            {locationData?.location && (
+              <List.Item
+                title='Address'
+                description={locationData.location.formattedAddress}
+                left={(props) => <List.Icon {...props} icon='map-marker' />}
+              />
+            )}
+            <Button
+              mode='outlined'
+              icon='map-search'
+              onPress={handleShowNearbyPlaces}
+              style={styles.nearbyPlacesButton}
+              loading={loadingLocation}
+              disabled={!locationData || loadingLocation}
+            >
+              View Nearby Places ({locationData?.nearbyPlaces?.length || 0})
+            </Button>
           </Card.Content>
         </Card>
 
-        {/* Landlord Information */}
-        <Card style={styles.landlordCard}>
+        {/* Safety Score & AI Summary */}
+        <Card style={styles.safetyCard}>
           <Card.Content>
-            <Text style={styles.sectionTitle}>Landlord</Text>
-            <View style={styles.landlordInfo}>
-              <Avatar.Image size={60} source={{ uri: room.landlord.avatar }} />
-              <View style={styles.landlordDetails}>
-                <View style={styles.landlordName}>
-                  <Text variant='titleMedium' style={styles.landlordNameText}>
-                    {room.landlord.name}
-                  </Text>
-                  {room.landlord.verified && (
-                    <Chip
-                      icon='check-circle'
-                      compact
-                      style={styles.verifiedChip}
-                    >
-                      Verified
-                    </Chip>
-                  )}
-                </View>
-                <Text style={styles.ratingText}>
-                  ⭐ {room.landlord.rating}/5.0 Rating
+            <Text style={styles.sectionTitle}>Safety Score</Text>
+            {loadingSafetyScore ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size='small' color='#6200ee' />
+                <Text style={styles.loadingText}>
+                  Analyzing safety score...
                 </Text>
               </View>
-            </View>
+            ) : safetyScore ? (
+              <>
+                <View style={styles.scoreContainer}>
+                  <View style={styles.scoreItem}>
+                    <Text style={styles.scoreLabel}>Crime Safety</Text>
+                    <Text
+                      style={[
+                        styles.scoreValue,
+                        {
+                          color:
+                            safetyScore.crime_score >= 7
+                              ? '#4CAF50'
+                              : safetyScore.crime_score >= 5
+                                ? '#FF9800'
+                                : '#F44336',
+                        },
+                      ]}
+                    >
+                      {safetyScore.crime_score}/10
+                    </Text>
+                  </View>
+                  <View style={styles.scoreItem}>
+                    <Text style={styles.scoreLabel}>User Reviews</Text>
+                    <Text
+                      style={[
+                        styles.scoreValue,
+                        {
+                          color:
+                            safetyScore.user_score >= 7
+                              ? '#4CAF50'
+                              : safetyScore.user_score >= 5
+                                ? '#FF9800'
+                                : '#F44336',
+                        },
+                      ]}
+                    >
+                      {safetyScore.user_score}/10
+                    </Text>
+                  </View>
+                  <View style={styles.scoreItem}>
+                    <Text style={styles.scoreLabel}>Environment</Text>
+                    <Text
+                      style={[
+                        styles.scoreValue,
+                        {
+                          color:
+                            safetyScore.environment_score >= 7
+                              ? '#4CAF50'
+                              : safetyScore.environment_score >= 5
+                                ? '#FF9800'
+                                : '#F44336',
+                        },
+                      ]}
+                    >
+                      {safetyScore.environment_score}/10
+                    </Text>
+                  </View>
+                </View>
+
+                <Divider style={styles.divider} />
+
+                <View style={styles.finalScoreContainer}>
+                  <Text style={styles.finalScoreLabel}>
+                    Overall Safety Score
+                  </Text>
+                  <Chip
+                    icon='shield-check'
+                    style={[
+                      styles.finalScoreChip,
+                      {
+                        backgroundColor:
+                          safetyScore.overall_score >= 7
+                            ? '#4CAF50'
+                            : safetyScore.overall_score >= 5
+                              ? '#FF9800'
+                              : '#F44336',
+                      },
+                    ]}
+                    textStyle={styles.finalScoreText}
+                  >
+                    {safetyScore.overall_score}/10
+                  </Chip>
+                </View>
+
+                {safetyScore.ai_summary && (
+                  <>
+                    <Divider style={styles.divider} />
+                    <Text style={styles.sectionTitle}>AI Analysis</Text>
+                    <Card style={styles.aiSummaryCard}>
+                      <Card.Content>
+                        <Markdown style={markdownStyles}>
+                          {safetyScore.ai_summary}
+                        </Markdown>
+                      </Card.Content>
+                    </Card>
+                  </>
+                )}
+              </>
+            ) : (
+              <Text style={styles.noDataText}>
+                Safety score will be calculated based on location data
+              </Text>
+            )}
           </Card.Content>
         </Card>
+
+        {/* Owner Information */}
+        {room.ownerName && (
+          <Card style={styles.landlordCard}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Owner</Text>
+              <View style={styles.landlordInfo}>
+                <Avatar.Icon size={60} icon='account' />
+                <View style={styles.landlordDetails}>
+                  <Text variant='titleMedium' style={styles.landlordNameText}>
+                    {room.ownerName}
+                  </Text>
+                  {room.availableFrom && (
+                    <Text style={styles.availabilityText}>
+                      Available from:{' '}
+                      {new Date(room.availableFrom).toLocaleDateString()}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </Card.Content>
+          </Card>
+        )}
       </ScrollView>
 
       {/* Contact Actions */}
@@ -294,6 +465,67 @@ export default function RoomDetailsScreen() {
           Contact Landlord
         </Button>
       </View>
+
+      {/* Nearby Places Modal */}
+      <Portal>
+        <Modal
+          visible={showNearbyPlacesModal}
+          onDismiss={() => setShowNearbyPlacesModal(false)}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <Card style={styles.modalCard}>
+            <Card.Content>
+              <View style={styles.modalHeader}>
+                <Text variant='headlineSmall' style={styles.modalTitle}>
+                  Nearby Places
+                </Text>
+                <IconButton
+                  icon='close'
+                  size={24}
+                  onPress={() => setShowNearbyPlacesModal(false)}
+                />
+              </View>
+
+              <ScrollView style={styles.modalScrollView}>
+                {locationData?.nearbyPlaces?.map((place, index) => (
+                  <Card key={place.placeId || index} style={styles.placeCard}>
+                    <Card.Content>
+                      <View style={styles.placeHeader}>
+                        <Text variant='titleMedium' style={styles.placeName}>
+                          {place.name}
+                        </Text>
+                        {place.rating > 0 && (
+                          <Chip icon='star' compact style={styles.ratingChip}>
+                            {place.rating.toFixed(1)}
+                          </Chip>
+                        )}
+                      </View>
+
+                      <Text style={styles.placeAddress}>{place.address}</Text>
+
+                      <View style={styles.placeInfo}>
+                        <Chip icon='walk' compact style={styles.infoChip}>
+                          {(place.distanceInMeters / 1000).toFixed(2)} km
+                        </Chip>
+                        <Chip compact style={styles.infoChip}>
+                          {place.type}
+                        </Chip>
+                      </View>
+
+                      <View style={styles.placeCoordinates}>
+                        <Text style={styles.coordinatesText}>
+                          📍 {place.latitude.toFixed(6)},{' '}
+                          {place.longitude.toFixed(6)}
+                        </Text>
+                      </View>
+                    </Card.Content>
+                  </Card>
+                ))}
+              </ScrollView>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
     </SafeAreaView>
   );
 }
@@ -315,6 +547,22 @@ const styles = StyleSheet.create({
   },
   backButton: {
     margin: 0,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  errorText: {
+    fontSize: 18,
+    marginBottom: 16,
+    color: '#d32f2f',
   },
   imageContainer: {
     position: 'relative',
@@ -382,6 +630,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  roomInfo: {
+    marginTop: 8,
+    fontSize: 14,
+  },
+  addressDetails: {
+    marginTop: 8,
+    fontSize: 14,
+    fontStyle: 'italic',
+    opacity: 0.8,
+  },
   amenitiesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -425,6 +683,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
   },
+  availabilityText: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 4,
+  },
   contactActions: {
     position: 'absolute',
     bottom: 0,
@@ -443,4 +706,199 @@ const styles = StyleSheet.create({
   chatButton: {
     flex: 2,
   },
+  nearbyPlacesButton: {
+    marginTop: 12,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    margin: 20,
+    borderRadius: 12,
+    maxHeight: '80%',
+  },
+  modalCard: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  modalScrollView: {
+    maxHeight: 400,
+  },
+  placeCard: {
+    marginBottom: 12,
+    elevation: 2,
+  },
+  placeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  placeName: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  ratingChip: {
+    backgroundColor: '#FFD700',
+  },
+  placeAddress: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 8,
+  },
+  placeInfo: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  infoChip: {
+    backgroundColor: '#e3f2fd',
+  },
+  placeCoordinates: {
+    marginTop: 4,
+  },
+  coordinatesText: {
+    fontSize: 12,
+    opacity: 0.6,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 12,
+  },
+  scoreItem: {
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginBottom: 4,
+  },
+  scoreValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  finalScoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  finalScoreLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  finalScoreChip: {
+    paddingHorizontal: 8,
+  },
+  finalScoreText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  aiSummaryCard: {
+    backgroundColor: '#f0f0f0',
+    elevation: 0,
+    marginTop: 8,
+  },
+  aiSummaryText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#333',
+  },
+  noDataText: {
+    fontSize: 14,
+    opacity: 0.6,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 12,
+  },
 });
+
+const markdownStyles = {
+  body: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#333',
+  },
+  heading1: {
+    fontSize: 20,
+    fontWeight: 'bold' as const,
+    marginTop: 12,
+    marginBottom: 8,
+    color: '#333',
+  },
+  heading2: {
+    fontSize: 18,
+    fontWeight: 'bold' as const,
+    marginTop: 10,
+    marginBottom: 6,
+    color: '#333',
+  },
+  heading3: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    marginTop: 8,
+    marginBottom: 4,
+    color: '#333',
+  },
+  paragraph: {
+    marginTop: 0,
+    marginBottom: 8,
+  },
+  bullet_list: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  ordered_list: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  list_item: {
+    marginBottom: 4,
+  },
+  strong: {
+    fontWeight: 'bold' as const,
+  },
+  em: {
+    fontStyle: 'italic' as const,
+  },
+  code_inline: {
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 3,
+    fontFamily: 'monospace' as const,
+    fontSize: 13,
+  },
+  code_block: {
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 8,
+    fontFamily: 'monospace' as const,
+    fontSize: 13,
+  },
+  fence: {
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 8,
+    fontFamily: 'monospace' as const,
+    fontSize: 13,
+  },
+  link: {
+    color: '#6200ee',
+    textDecorationLine: 'underline' as const,
+  },
+};

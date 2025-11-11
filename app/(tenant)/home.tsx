@@ -19,31 +19,11 @@ import {
 } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getRooms, mapRoomDTOToUIRoom } from '../../utils/rooms';
-
-interface Room {
-  id: string;
-  title: string;
-  price: number;
-  location: string;
-  area: number;
-  images: string[];
-  amenities: string[];
-  saved: boolean;
-  rating: number;
-  reviewCount: number;
-  landlord: {
-    name: string;
-    verified: boolean;
-  };
-  availableFrom: string;
-  roomType: string;
-  distanceToCenter: number;
-}
+import { roomService, RoomDTO } from '../../services/room.service';
 
 export default function TenantHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<RoomDTO[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,9 +36,8 @@ export default function TenantHomeScreen() {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const roomsData = await getRooms();
-      const mappedRooms = roomsData.map(mapRoomDTOToUIRoom);
-      setRooms(mappedRooms);
+      const roomsData = await roomService.getAllRooms();
+      setRooms(roomsData);
     } catch (error) {
       console.error('Error fetching rooms:', error);
       Alert.alert(
@@ -89,12 +68,9 @@ export default function TenantHomeScreen() {
     router.push(`/(tenant)/room-details/${roomId}`);
   };
 
-  const handleSaveRoom = (roomId: string) => {
-    setRooms((prev) =>
-      prev.map((room) =>
-        room.id === roomId ? { ...room, saved: !room.saved } : room,
-      ),
-    );
+  const handleSaveRoom = (roomId: number) => {
+    // TODO: Implement save room functionality with backend
+    Alert.alert('Info', 'Save room functionality coming soon!');
   };
 
   const handleFilterPress = () => {
@@ -113,8 +89,11 @@ export default function TenantHomeScreen() {
     router.push('./chat-history');
   };
 
-  const renderRoomCard = ({ item }: { item: Room }) => (
-    <Card style={styles.roomCard} onPress={() => handleRoomPress(item.id)}>
+  const renderRoomCard = ({ item }: { item: RoomDTO }) => (
+    <Card
+      style={styles.roomCard}
+      onPress={() => handleRoomPress(item.id.toString())}
+    >
       <Card.Cover
         source={{
           uri: 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg',
@@ -128,49 +107,39 @@ export default function TenantHomeScreen() {
           </Text>
           <Button
             mode='text'
-            icon={item.saved ? 'heart' : 'heart-outline'}
+            icon='heart-outline'
             onPress={() => handleSaveRoom(item.id)}
             style={styles.saveButton}
           >
-            {item.saved ? 'Saved' : 'Save'}
+            Save
           </Button>
         </View>
 
         <Text variant='bodyMedium' style={styles.roomLocation}>
-          {item.location}
+          {item.location ||
+            [item.city, item.district].filter(Boolean).join(', ')}
         </Text>
 
         <View style={styles.roomDetails}>
           <Text variant='headlineSmall' style={styles.priceText}>
-            {item.price}đ/month
+            {item.price || 0}đ/month
           </Text>
           <Text variant='bodyMedium' style={styles.areaText}>
-            {item.area}m² • {item.roomType}
+            {item.roomSize || 0}m² • {item.numBedrooms || 0} BR
           </Text>
         </View>
 
-        {/* Availability and Distance */}
+        {/* Availability */}
         <View style={styles.infoRow}>
-          <Text style={styles.availabilityText}>{item.availableFrom}</Text>
-          <Text style={styles.distanceText}>
-            {item.distanceToCenter}km to center
+          <Text style={styles.availabilityText}>
+            {item.availableFrom
+              ? new Date(item.availableFrom).toLocaleDateString()
+              : item.isRoomAvailable
+                ? 'Available Now'
+                : 'Not Available'}
           </Text>
-        </View>
-
-        <View style={styles.amenitiesContainer}>
-          {item.amenities.slice(0, 3).map((amenity, index) => (
-            <Chip
-              key={`${item.id}-${amenity}-${index}`}
-              compact
-              style={styles.amenityChip}
-            >
-              {amenity}
-            </Chip>
-          ))}
-          {item.amenities.length > 3 && (
-            <Text style={styles.moreAmenities}>
-              +{item.amenities.length - 3} more
-            </Text>
+          {item.ownerName && (
+            <Text style={styles.ownerText}>Owner: {item.ownerName}</Text>
           )}
         </View>
       </Card.Content>
@@ -310,7 +279,7 @@ export default function TenantHomeScreen() {
             <FlatList
               data={rooms}
               renderItem={renderRoomCard}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
               scrollEnabled={false}
               refreshing={refreshing}
@@ -499,6 +468,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6200ee',
     fontWeight: '500',
+  },
+  ownerText: {
+    fontSize: 12,
+    opacity: 0.7,
   },
   distanceText: {
     fontSize: 12,
