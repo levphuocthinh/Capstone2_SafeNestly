@@ -68,6 +68,27 @@ export default function NotificationsScreen() {
     }
   }, []);
 
+  // Hàm tạo unique ID từ notification content (không phụ thuộc vào index)
+  // Dùng hash đơn giản của userId-type-message để tạo unique ID ổn định
+  const getNotificationId = useCallback(
+    (notification: NotificationDto): string => {
+      // Tạo hash đơn giản từ content để có unique ID ổn định
+      const content = `${notification.userId}-${notification.type}-${notification.message}`;
+      // Sử dụng JSON.stringify và hash đơn giản
+      let hash = 0;
+      for (let i = 0; i < content.length; i++) {
+        const char = content.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      // Nếu notification có id từ backend thì dùng id, nếu không dùng hash
+      return notification.id
+        ? `id-${notification.id}`
+        : `hash-${Math.abs(hash)}`;
+    },
+    [],
+  );
+
   // Function để fetch notifications từ API
   const fetchNotifications = useCallback(async () => {
     try {
@@ -111,13 +132,23 @@ export default function NotificationsScreen() {
           ? data.data
           : [];
 
-      // Sắp xếp notifications: mới nhất lên đầu
-      // Vì backend không trả về createdAt/id, ta reverse array (giả định backend trả về cũ nhất trước)
-      // Hoặc có thể dựa vào index nếu backend trả về mới nhất trước thì không cần reverse
-      // Thử reverse trước, nếu không đúng thì có thể điều chỉnh
-      notificationsList = notificationsList.reverse();
+      // Thêm index gốc từ backend vào mỗi notification để làm unique key
+      // Index này sẽ được dùng cho keyExtractor, nhưng không ảnh hưởng đến getNotificationId
+      const notificationsWithOriginalIndex = notificationsList.map(
+        (notif, originalIndex) => ({
+          ...notif,
+          _originalIndex: originalIndex, // Thêm index gốc để dùng cho key
+        }),
+      );
 
-      setNotifications(notificationsList);
+      // Sắp xếp notifications mới nhất lên đầu (không dùng reverse())
+      // Tạo array mới bằng cách duyệt từ cuối lên đầu
+      const sortedNotifications: any[] = [];
+      for (let i = notificationsWithOriginalIndex.length - 1; i >= 0; i--) {
+        sortedNotifications.push(notificationsWithOriginalIndex[i]);
+      }
+
+      setNotifications(sortedNotifications);
     } catch (err) {
       console.error('Error fetching notifications:', err);
       setError(
@@ -147,10 +178,7 @@ export default function NotificationsScreen() {
   // Đánh dấu tất cả notifications là đã đọc
   const handleMarkAllAsRead = useCallback(async () => {
     try {
-      const allIds = notifications.map((notif, index) => {
-        // Tạo unique ID giống với logic kiểm tra (dùng index)
-        return `${notif.userId}-${notif.type}-${notif.message}-${index}`;
-      });
+      const allIds = notifications.map((notif) => getNotificationId(notif));
 
       const newReadIds = new Set([...readNotificationIds, ...allIds]);
       setReadNotificationIds(newReadIds);
@@ -161,14 +189,18 @@ export default function NotificationsScreen() {
       console.error('Error marking all as read:', error);
       Alert.alert('Lỗi', 'Không thể đánh dấu tất cả là đã đọc.');
     }
-  }, [notifications, readNotificationIds, saveReadNotifications]);
+  }, [
+    notifications,
+    readNotificationIds,
+    saveReadNotifications,
+    getNotificationId,
+  ]);
 
   // Đánh dấu một notification là đã đọc
   const handleMarkAsRead = useCallback(
-    async (notification: NotificationDto, index: number) => {
+    async (notification: NotificationDto) => {
       try {
-        // Tạo unique ID giống với logic kiểm tra (dùng index)
-        const notificationId = `${notification.userId}-${notification.type}-${notification.message}-${index}`;
+        const notificationId = getNotificationId(notification);
         const newReadIds = new Set([...readNotificationIds, notificationId]);
         setReadNotificationIds(newReadIds);
         await saveReadNotifications(newReadIds);
@@ -176,34 +208,26 @@ export default function NotificationsScreen() {
         console.error('Error marking as read:', error);
       }
     },
-    [readNotificationIds, saveReadNotifications],
+    [readNotificationIds, saveReadNotifications, getNotificationId],
   );
 
   // Kiểm tra notification đã đọc chưa
   const isNotificationRead = useCallback(
-    (notification: NotificationDto, index: number): boolean => {
-      // Tạo unique ID dựa trên các field có sẵn và index để đảm bảo unique
-      // Sử dụng index vì không có id từ backend
-      const notificationId = `${notification.userId}-${notification.type}-${notification.message}-${index}`;
+    (notification: NotificationDto): boolean => {
+      const notificationId = getNotificationId(notification);
       return readNotificationIds.has(notificationId);
     },
-    [readNotificationIds],
+    [readNotificationIds, getNotificationId],
   );
 
   // Đếm số notifications chưa đọc
   const unreadCount = notifications.filter(
-    (notif, index) => !isNotificationRead(notif, index),
+    (notif) => !isNotificationRead(notif),
   ).length;
 
   // Render notification item
-  const renderNotificationItem = ({
-    item,
-    index,
-  }: {
-    item: NotificationDto;
-    index: number;
-  }) => {
-    const isRead = isNotificationRead(item, index);
+  const renderNotificationItem = ({ item }: { item: NotificationDto }) => {
+    const isRead = isNotificationRead(item);
     return (
       <Card
         style={[styles.notificationCard, isRead && styles.readNotificationCard]}
@@ -222,7 +246,7 @@ export default function NotificationsScreen() {
             <IconButton
               icon={isRead ? 'check-circle' : 'check-circle-outline'}
               size={20}
-              onPress={() => handleMarkAsRead(item, index)}
+              onPress={() => handleMarkAsRead(item)}
               style={styles.markReadButton}
             />
           </View>
@@ -295,12 +319,12 @@ export default function NotificationsScreen() {
       ) : (
         <FlatList
           data={notifications}
-          renderItem={({ item, index }) =>
-            renderNotificationItem({ item, index })
-          }
+          renderItem={({ item }) => renderNotificationItem({ item })}
           keyExtractor={(item, index) => {
-            // Tạo unique key từ các thông tin của notification và index
-            return `${item.userId}-${item.type}-${item.message}-${index}`;
+            // Dùng originalIndex từ backend để đảm bảo unique key
+            // Nếu không có originalIndex thì dùng index hiện tại
+            const originalIndex = (item as any)._originalIndex ?? index;
+            return `notif-${originalIndex}-${getNotificationId(item)}`;
           }}
           contentContainerStyle={styles.listContainer}
           refreshControl={
