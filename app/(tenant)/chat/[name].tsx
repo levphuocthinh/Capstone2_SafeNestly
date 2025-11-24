@@ -28,7 +28,11 @@ import SockJS from 'sockjs-client';
 import { Client, IMessage } from '@stomp/stompjs';
 
 import { buildApiUrl, getApiBaseUrl } from '../../../utils/api';
-import { getAuthToken, getCurrentUser, UserSession } from '../../../utils/auth';
+import {
+  getStoredToken,
+  getStoredUser,
+  User,
+} from '../../../utils/auth-storage';
 import { upsertRecentChat } from '../../../utils/chat-history';
 
 interface ChatMessage {
@@ -71,7 +75,7 @@ export default function ChatScreen() {
   const stompClientRef = useRef<Client | null>(null);
   const pendingMessagesRef = useRef<RawMessage[]>([]);
 
-  const userSession: UserSession | null = useMemo(() => getCurrentUser(), []);
+  const [userSession, setUserSession] = useState<User | null>(null);
   const myEmail = userSession?.email ?? '';
   const myId = userSession?.id;
 
@@ -157,7 +161,7 @@ export default function ChatScreen() {
     if (partner.email || !partner.id) {
       return;
     }
-    const token = getAuthToken();
+    const token = await getStoredToken();
     if (!token) {
       setError(
         'Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại để tiếp tục trò chuyện.',
@@ -205,6 +209,14 @@ export default function ChatScreen() {
   }, [partner.email, partner.id]);
 
   useEffect(() => {
+    const loadUserSession = async () => {
+      const user = await getStoredUser();
+      setUserSession(user);
+    };
+    loadUserSession();
+  }, []);
+
+  useEffect(() => {
     fetchPartnerDetails();
   }, [fetchPartnerDetails]);
 
@@ -235,7 +247,7 @@ export default function ChatScreen() {
     if (!myEmail || (!partner.email && !partner.id)) {
       return;
     }
-    const token = getAuthToken();
+    const token = await getStoredToken();
     if (!token) {
       setError(
         'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem lịch sử trò chuyện.',
@@ -300,16 +312,38 @@ export default function ChatScreen() {
         const payload = JSON.parse(messageEvent.body);
         const mapped = mapBackendMessage(payload);
         setMessages((prev) => {
-          const exists =
+          // Check if this message already exists by backendId
+          const existsByBackendId =
             mapped.backendId !== undefined &&
             prev.some(
               (item) =>
                 item.backendId !== undefined &&
                 item.backendId === mapped.backendId,
             );
-          if (exists) {
+          if (existsByBackendId) {
             return prev;
           }
+
+          // Check if this is a confirmation of a message we just sent (within 5 seconds)
+          // by matching text content and sender
+          const isOwnMessage = mapped.sender === 'user';
+          if (isOwnMessage) {
+            const recentlySentIndex = prev.findIndex(
+              (item) =>
+                item.text === mapped.text &&
+                item.sender === 'user' &&
+                !item.backendId &&
+                Math.abs(item.rawTimestamp - mapped.rawTimestamp) < 5000,
+            );
+
+            if (recentlySentIndex !== -1) {
+              // Replace the temporary message with the confirmed one
+              const updated = [...prev];
+              updated[recentlySentIndex] = mapped;
+              return updated;
+            }
+          }
+
           const next = [...prev, mapped].sort(
             (a, b) => a.rawTimestamp - b.rawTimestamp,
           );
@@ -339,45 +373,70 @@ export default function ChatScreen() {
   }, []);
 
   useEffect(() => {
-    if (!myEmail || !partner.email) {
-      return;
-    }
-    setConnectionState('connecting');
+    const initWebSocket = async () => {
+      if (!myEmail || !partner.email) {
+        return;
+      }
 
-    const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
-    const socketUrl = `${baseUrl}/ws?username=${encodeURIComponent(myEmail)}`;
+      // Check if we have valid authentication
+      const token = await getStoredToken();
+      if (!token) {
+        setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        setConnectionState('error');
+        return;
+      }
 
-    const client = new Client({
-      webSocketFactory: () => new SockJS(socketUrl),
-      connectHeaders: {
-        username: myEmail,
-      },
-      debug: () => {},
-      reconnectDelay: 5000,
-    });
+      setConnectionState('connecting');
 
-    client.onConnect = () => {
-      setConnectionState('connected');
-      setError('');
-      fetchChatHistory();
-      flushPendingMessages();
+      const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
+      const socketUrl = `${baseUrl}/ws?username=${encodeURIComponent(myEmail)}`;
 
-      const privateQueue = `/user/${myEmail}/private`;
-      client.subscribe(privateQueue, handleIncomingMessage);
+      const client = new Client({
+        webSocketFactory: () => new SockJS(socketUrl),
+        connectHeaders: {
+          username: myEmail,
+        },
+        debug: (str) => {
+          console.log('STOMP: ' + str);
+        },
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      });
+
+      client.onConnect = () => {
+        console.log('WebSocket connected for user:', myEmail);
+        setConnectionState('connected');
+        setError('');
+        fetchChatHistory();
+        flushPendingMessages();
+
+        const privateQueue = `/user/${myEmail}/private`;
+        console.log('Subscribing to:', privateQueue);
+        client.subscribe(privateQueue, handleIncomingMessage);
+      };
+
+      client.onStompError = (frame) => {
+        console.error('STOMP error:', frame);
+        setConnectionState('error');
+        setError(frame.body || 'Kết nối chat gặp lỗi.');
+      };
+
+      client.onWebSocketClose = () => {
+        console.warn('WebSocket closed');
+        setConnectionState('error');
+      };
+
+      client.onWebSocketError = (error) => {
+        console.error('WebSocket error:', error);
+        setConnectionState('error');
+      };
+
+      stompClientRef.current = client;
+      client.activate();
     };
 
-    client.onStompError = (frame) => {
-      console.error('STOMP error:', frame);
-      setConnectionState('error');
-      setError(frame.body || 'Kết nối chat gặp lỗi.');
-    };
-
-    client.onWebSocketClose = () => {
-      setConnectionState('error');
-    };
-
-    stompClientRef.current = client;
-    client.activate();
+    initWebSocket();
 
     return () => {
       pendingMessagesRef.current = [];

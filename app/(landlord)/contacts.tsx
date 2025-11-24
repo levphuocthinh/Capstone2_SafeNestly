@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import {
   Text,
   Card,
@@ -9,66 +9,344 @@ import {
   Avatar,
   Chip,
   Searchbar,
+  ActivityIndicator,
 } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SockJS from 'sockjs-client';
+import { Client, IMessage } from '@stomp/stompjs';
 
-interface Contact {
+import {
+  loadRecentChats,
+  RecentChat,
+  persistRecentChats,
+} from '../../utils/chat-history';
+import { buildApiUrl, getApiBaseUrl } from '../../utils/api';
+import { getStoredToken, getStoredUser } from '../../utils/auth-storage';
+
+interface Contact extends RecentChat {
   id: string;
   name: string;
-  avatar: string;
-  property: string;
   status: 'new' | 'replied' | 'interested' | 'not-interested';
-  lastMessage: string;
-  lastMessageTime: string;
   unreadCount: number;
 }
 
-const mockContacts: Contact[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    avatar: 'https://via.placeholder.com/50x50',
-    property: 'Modern Downtown Apartment',
-    status: 'new',
-    lastMessage:
-      "Hi! I'm interested in viewing this apartment. When would be a good time?",
-    lastMessageTime: '2 hours ago',
-    unreadCount: 2,
-  },
-  {
-    id: '2',
-    name: 'Mike Chen',
-    avatar: 'https://via.placeholder.com/50x50',
-    property: 'Cozy Studio Near University',
-    status: 'replied',
-    lastMessage:
-      "Thank you for the information. I'll let you know by tomorrow.",
-    lastMessageTime: '1 day ago',
-    unreadCount: 0,
-  },
-  {
-    id: '3',
-    name: 'Emma Wilson',
-    avatar: 'https://via.placeholder.com/50x50',
-    property: 'Modern Downtown Apartment',
-    status: 'interested',
-    lastMessage: 'I would like to schedule a viewing for this weekend.',
-    lastMessageTime: '3 days ago',
-    unreadCount: 1,
-  },
-];
-
 export default function ManageContactsScreen() {
-  const [contacts] = useState(mockContacts);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [wsConnected, setWsConnected] = useState(false);
+  const stompClientRef = useRef<Client | null>(null);
 
-  const handleContactPress = (contactId: string) => {
-    const contact = contacts.find((c) => c.id === contactId);
-    if (contact) {
-      router.push(`./chat/${contact.name}`);
+  const fetchContacts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = await getStoredToken();
+      const user = await getStoredUser();
+
+      if (!token || !user?.id) {
+        // Load cached data only, don't throw error
+        const cached = await loadRecentChats();
+        const cachedContacts: Contact[] = cached.map((item) => ({
+          id: String(item.partnerId || item.conversationId || Math.random()),
+          conversationId: item.conversationId,
+          partnerId: item.partnerId,
+          partnerEmail: item.partnerEmail,
+          partnerName: item.partnerName,
+          name: item.partnerName,
+          lastMessagePreview: item.lastMessagePreview,
+          lastTimestamp: item.lastTimestamp,
+          status: 'replied' as const,
+          unreadCount: 0,
+        }));
+        setContacts(cachedContacts);
+        setError('Vui lòng đăng nhập để xem tin nhắn mới.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(
+        buildApiUrl(`/messages/api/messages/conversations/${user.id}`),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Không thể tải danh sách trò chuyện (mã ${response.status}).`,
+        );
+      }
+
+      const payload = await response.json();
+      const rawItems = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : [];
+
+      const mapped: Contact[] = rawItems
+        .filter(
+          (item: unknown): item is Record<string, unknown> =>
+            typeof item === 'object' && item !== null,
+        )
+        .map((item: Record<string, unknown>) => ({
+          id: String(item.partnerId || item.conversationId || Math.random()),
+          conversationId:
+            typeof item.conversationId === 'number'
+              ? item.conversationId
+              : undefined,
+          partnerId:
+            typeof item.partnerId === 'number' ? item.partnerId : undefined,
+          partnerEmail:
+            typeof item.partnerEmail === 'string'
+              ? item.partnerEmail
+              : undefined,
+          partnerName:
+            (item.partnerName as string) ||
+            (item.partnerEmail as string) ||
+            'Unknown',
+          name:
+            (item.partnerName as string) ||
+            (item.partnerEmail as string) ||
+            'Unknown',
+          lastMessagePreview:
+            (item.lastMessage as string) ||
+            (item.partnerEmail as string) ||
+            undefined,
+          lastTimestamp:
+            typeof item.lastTimestamp === 'number'
+              ? item.lastTimestamp
+              : Date.now(),
+          status: 'replied' as const,
+          unreadCount: 0,
+        }))
+        .sort((a: Contact, b: Contact) => b.lastTimestamp - a.lastTimestamp);
+
+      setContacts(mapped);
+      setError('');
+    } catch (err) {
+      console.error('Lỗi tải danh sách trò chuyện:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể tải danh sách trò chuyện.',
+      );
+      // Load cached data as fallback
+      const cached = await loadRecentChats();
+      const cachedContacts: Contact[] = cached.map((item) => ({
+        id: String(item.partnerId || item.conversationId || Math.random()),
+        conversationId: item.conversationId,
+        partnerId: item.partnerId,
+        partnerEmail: item.partnerEmail,
+        partnerName: item.partnerName,
+        name: item.partnerName,
+        lastMessagePreview: item.lastMessagePreview,
+        lastTimestamp: item.lastTimestamp,
+        status: 'replied' as const,
+        unreadCount: 0,
+      }));
+      setContacts(cachedContacts);
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchContacts();
+    setRefreshing(false);
+  }, [fetchContacts]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchContacts();
+    }, [fetchContacts]),
+  );
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    let client: Client | null = null;
+
+    const connectWebSocket = async () => {
+      try {
+        const user = await getStoredUser();
+        const token = await getStoredToken();
+
+        if (!user?.email || !token) {
+          console.warn(
+            '[LandlordContacts] No user or token, skipping WebSocket',
+          );
+          return;
+        }
+
+        const baseUrl = getApiBaseUrl();
+        const wsUrl = `${baseUrl}/ws?username=${encodeURIComponent(user.email)}`;
+
+        client = new Client({
+          webSocketFactory: () => new SockJS(wsUrl) as any,
+          connectHeaders: {
+            username: user.email,
+          },
+          debug: (str) => {
+            console.log('[LandlordContacts WS]', str);
+          },
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+          onConnect: () => {
+            console.log('[LandlordContacts] WebSocket connected');
+            setWsConnected(true);
+
+            if (!client) return;
+
+            // Subscribe to private messages
+            client.subscribe(
+              `/user/${user.email}/private`,
+              async (message: IMessage) => {
+                try {
+                  const body = JSON.parse(message.body);
+                  console.log('[LandlordContacts] Received message:', body);
+
+                  // Determine partner info from the message
+                  const isOutgoing = body.senderEmail === user.email;
+                  const partnerEmail = isOutgoing
+                    ? body.receiverEmail
+                    : body.senderEmail;
+                  const partnerId = isOutgoing
+                    ? body.receiverId
+                    : body.senderId;
+
+                  // Update the contacts list
+                  setContacts((prevContacts) => {
+                    const existingIndex = prevContacts.findIndex(
+                      (c) =>
+                        c.partnerEmail === partnerEmail ||
+                        (partnerId && c.partnerId === partnerId),
+                    );
+
+                    // If contact exists, preserve the partner name
+                    const existingContact =
+                      existingIndex >= 0 ? prevContacts[existingIndex] : null;
+
+                    // Get partner name: prefer existing name > message name > email
+                    const partnerName =
+                      existingContact?.partnerName ||
+                      (isOutgoing
+                        ? body.receiverName || body.receiverEmail
+                        : body.senderName || body.senderEmail);
+
+                    const newContact: Contact = {
+                      id: String(
+                        partnerId || body.conversationId || Math.random(),
+                      ),
+                      conversationId:
+                        body.conversationId || existingContact?.conversationId,
+                      partnerId: partnerId || existingContact?.partnerId,
+                      partnerName: partnerName,
+                      partnerEmail: partnerEmail,
+                      name: partnerName,
+                      lastMessagePreview: body.content || body.message || '',
+                      lastTimestamp: body.timestamp || Date.now(),
+                      status: existingContact?.status || ('replied' as const),
+                      unreadCount: 0,
+                    };
+
+                    let updatedContacts: Contact[];
+                    if (existingIndex >= 0) {
+                      // Update existing contact
+                      updatedContacts = [...prevContacts];
+                      updatedContacts[existingIndex] = newContact;
+                    } else {
+                      // Add new contact
+                      updatedContacts = [newContact, ...prevContacts];
+                    }
+
+                    // Sort by timestamp
+                    updatedContacts.sort(
+                      (a, b) => b.lastTimestamp - a.lastTimestamp,
+                    );
+
+                    // Persist to storage (as RecentChat format)
+                    const recentChats: RecentChat[] = updatedContacts.map(
+                      (c) => ({
+                        conversationId: c.conversationId,
+                        partnerId: c.partnerId,
+                        partnerName: c.partnerName,
+                        partnerEmail: c.partnerEmail,
+                        lastMessagePreview: c.lastMessagePreview,
+                        lastTimestamp: c.lastTimestamp,
+                      }),
+                    );
+                    persistRecentChats(recentChats).catch((err) =>
+                      console.error(
+                        '[LandlordContacts] Failed to persist:',
+                        err,
+                      ),
+                    );
+
+                    return updatedContacts;
+                  });
+                } catch (err) {
+                  console.error(
+                    '[LandlordContacts] Error processing message:',
+                    err,
+                  );
+                }
+              },
+            );
+          },
+          onStompError: (frame) => {
+            console.error('[LandlordContacts] STOMP error:', frame);
+            setWsConnected(false);
+          },
+          onWebSocketError: (event) => {
+            console.error('[LandlordContacts] WebSocket error:', event);
+            setWsConnected(false);
+          },
+          onDisconnect: () => {
+            console.log('[LandlordContacts] WebSocket disconnected');
+            setWsConnected(false);
+          },
+        });
+
+        stompClientRef.current = client;
+        client.activate();
+      } catch (error) {
+        console.error('[LandlordContacts] Failed to connect WebSocket:', error);
+        setWsConnected(false);
+      }
+    };
+
+    void connectWebSocket();
+
+    return () => {
+      if (stompClientRef.current) {
+        console.log('[LandlordContacts] Deactivating WebSocket');
+        stompClientRef.current.deactivate();
+        stompClientRef.current = null;
+      }
+      setWsConnected(false);
+    };
+  }, []);
+
+  const handleContactPress = (contact: Contact) => {
+    router.push({
+      pathname: './chat/[name]',
+      params: {
+        name: contact.name,
+        backendUserId: contact.partnerId?.toString() || '',
+        tenantEmail: contact.partnerEmail || '',
+        conversationId: contact.conversationId?.toString() || '',
+      },
+    });
   };
 
   const handleFilterPress = (filter: string) => {
@@ -105,10 +383,25 @@ export default function ManageContactsScreen() {
     }
   };
 
+  const formatTimestamp = (timestamp: number): string => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return new Date(timestamp).toLocaleDateString();
+  };
+
   const filteredContacts = contacts.filter((contact) => {
     const matchesSearch =
       contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.property.toLowerCase().includes(searchQuery.toLowerCase());
+      (contact.partnerEmail &&
+        contact.partnerEmail.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (selectedFilter === 'all') return matchesSearch;
     return matchesSearch && contact.status === selectedFilter;
@@ -133,50 +426,73 @@ export default function ManageContactsScreen() {
     },
   ];
 
-  const renderContactCard = ({ item }: { item: Contact }) => (
-    <Card
-      style={styles.contactCard}
-      onPress={() => handleContactPress(item.id)}
-    >
-      <Card.Content style={styles.cardContent}>
-        <View style={styles.contactHeader}>
-          <Avatar.Image
-            size={50}
-            source={{ uri: item.avatar }}
-            style={styles.avatar}
-          />
-          <View style={styles.contactInfo}>
-            <View style={styles.nameContainer}>
-              <Title style={styles.contactName}>{item.name}</Title>
-              {item.unreadCount > 0 && (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadText}>{item.unreadCount}</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.propertyName}>{item.property}</Text>
-            <View style={styles.statusContainer}>
-              <Chip
-                style={[
-                  styles.statusChip,
-                  { backgroundColor: getStatusColor(item.status) },
-                ]}
-                textStyle={styles.statusText}
-                compact
-              >
-                {getStatusLabel(item.status)}
-              </Chip>
-              <Text style={styles.timeText}>{item.lastMessageTime}</Text>
+  const renderContactCard = ({ item }: { item: Contact }) => {
+    const initial = item.name?.charAt(0) || 'U';
+    return (
+      <Card style={styles.contactCard} onPress={() => handleContactPress(item)}>
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.contactHeader}>
+            <Avatar.Text size={50} label={initial} style={styles.avatar} />
+            <View style={styles.contactInfo}>
+              <View style={styles.nameContainer}>
+                <Title style={styles.contactName}>{item.name}</Title>
+                {item.unreadCount > 0 && (
+                  <View style={styles.unreadBadge}>
+                    <Text style={styles.unreadText}>{item.unreadCount}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.propertyName}>
+                {item.partnerEmail || 'No email'}
+              </Text>
+              <View style={styles.statusContainer}>
+                <Chip
+                  style={[
+                    styles.statusChip,
+                    { backgroundColor: getStatusColor(item.status) },
+                  ]}
+                  textStyle={styles.statusText}
+                  compact
+                >
+                  {getStatusLabel(item.status)}
+                </Chip>
+                <Text style={styles.timeText}>
+                  {formatTimestamp(item.lastTimestamp)}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        <Paragraph style={styles.lastMessage} numberOfLines={2}>
-          {item.lastMessage}
-        </Paragraph>
-      </Card.Content>
-    </Card>
-  );
+          <Paragraph style={styles.lastMessage} numberOfLines={2}>
+            {item.lastMessagePreview || 'No messages yet'}
+          </Paragraph>
+        </Card.Content>
+      </Card>
+    );
+  };
+
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Button
+            mode='text'
+            icon='arrow-left'
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            Back
+          </Button>
+          <Title style={styles.headerTitle}>Messages</Title>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' />
+          <Text style={styles.loadingText}>Đang tải tin nhắn...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -215,7 +531,19 @@ export default function ManageContactsScreen() {
         </View>
       </View>
 
-      {filteredContacts.length === 0 ? (
+      {error ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Error</Text>
+          <Paragraph style={styles.emptySubtitle}>{error}</Paragraph>
+          <Button
+            mode='contained'
+            onPress={fetchContacts}
+            style={{ marginTop: 16 }}
+          >
+            Retry
+          </Button>
+        </View>
+      ) : filteredContacts.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>No Messages</Text>
           <Paragraph style={styles.emptySubtitle}>
@@ -228,9 +556,14 @@ export default function ManageContactsScreen() {
         <FlatList
           data={filteredContacts}
           renderItem={renderContactCard}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) =>
+            `contact-${item.conversationId ?? ''}-${item.partnerId ?? ''}-${item.partnerEmail ?? ''}-${index}`
+          }
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
     </SafeAreaView>
@@ -367,5 +700,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
     lineHeight: 24,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    opacity: 0.7,
   },
 });

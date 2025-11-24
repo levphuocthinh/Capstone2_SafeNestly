@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import {
   Text,
@@ -9,32 +9,40 @@ import {
 } from 'react-native-paper';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SockJS from 'sockjs-client';
+import { Client, IMessage } from '@stomp/stompjs';
 
 import {
   clearRecentChats,
   loadRecentChats,
   persistRecentChats,
   RecentChat,
+  upsertRecentChat,
 } from '../../utils/chat-history';
-import { buildApiUrl } from '../../utils/api';
-import { getAuthToken, getCurrentUser } from '../../utils/auth';
+import { buildApiUrl, getApiBaseUrl } from '../../utils/api';
+import { getStoredToken, getStoredUser } from '../../utils/auth-storage';
 
 const ChatHistoryScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chats, setChats] = useState<RecentChat[]>([]);
   const [error, setError] = useState('');
+  const [wsConnected, setWsConnected] = useState(false);
+  const stompClientRef = useRef<Client | null>(null);
 
   const fetchChats = useCallback(async () => {
     setLoading(true);
     try {
-      const token = getAuthToken();
-      const user = getCurrentUser();
+      const token = await getStoredToken();
+      const user = await getStoredUser();
 
       if (!token || !user?.id) {
-        throw new Error(
-          'Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại.',
-        );
+        // Load cached data only, don't throw error
+        const cached = await loadRecentChats();
+        setChats(cached);
+        setError('Vui lòng đăng nhập để xem tin nhắn mới.');
+        setLoading(false);
+        return;
       }
 
       const response = await fetch(
@@ -123,6 +131,148 @@ const ChatHistoryScreen = () => {
     }, [fetchChats]),
   );
 
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    let client: Client | null = null;
+
+    const connectWebSocket = async () => {
+      try {
+        const user = await getStoredUser();
+        const token = await getStoredToken();
+
+        if (!user?.email || !token) {
+          console.warn('[ChatHistory] No user or token, skipping WebSocket');
+          return;
+        }
+
+        const baseUrl = getApiBaseUrl();
+        const wsUrl = `${baseUrl}/ws?username=${encodeURIComponent(user.email)}`;
+
+        client = new Client({
+          webSocketFactory: () => new SockJS(wsUrl) as any,
+          connectHeaders: {
+            username: user.email,
+          },
+          debug: (str) => {
+            console.log('[ChatHistory WS]', str);
+          },
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+          onConnect: () => {
+            console.log('[ChatHistory] WebSocket connected');
+            setWsConnected(true);
+
+            if (!client) return;
+
+            // Subscribe to private messages
+            client.subscribe(
+              `/user/${user.email}/private`,
+              async (message: IMessage) => {
+                try {
+                  const body = JSON.parse(message.body);
+                  console.log('[ChatHistory] Received message:', body);
+
+                  // Determine partner info from the message
+                  const isOutgoing = body.senderEmail === user.email;
+                  const partnerEmail = isOutgoing
+                    ? body.receiverEmail
+                    : body.senderEmail;
+                  const partnerId = isOutgoing
+                    ? body.receiverId
+                    : body.senderId;
+
+                  // Update the chat list
+                  setChats((prevChats) => {
+                    const existingIndex = prevChats.findIndex(
+                      (c) =>
+                        c.partnerEmail === partnerEmail ||
+                        (partnerId && c.partnerId === partnerId),
+                    );
+
+                    // If conversation exists, preserve the partner name
+                    const existingChat =
+                      existingIndex >= 0 ? prevChats[existingIndex] : null;
+
+                    // Get partner name: prefer existing name > message name > email
+                    const partnerName =
+                      existingChat?.partnerName ||
+                      (isOutgoing
+                        ? body.receiverName || body.receiverEmail
+                        : body.senderName || body.senderEmail);
+
+                    const newChat: RecentChat = {
+                      conversationId:
+                        body.conversationId || existingChat?.conversationId,
+                      partnerId: partnerId || existingChat?.partnerId,
+                      partnerName: partnerName,
+                      partnerEmail: partnerEmail,
+                      lastMessagePreview: body.content || body.message || '',
+                      lastTimestamp: body.timestamp || Date.now(),
+                    };
+
+                    let updatedChats: RecentChat[];
+                    if (existingIndex >= 0) {
+                      // Update existing conversation
+                      updatedChats = [...prevChats];
+                      updatedChats[existingIndex] = newChat;
+                    } else {
+                      // Add new conversation
+                      updatedChats = [newChat, ...prevChats];
+                    }
+
+                    // Sort by timestamp
+                    updatedChats.sort(
+                      (a, b) => b.lastTimestamp - a.lastTimestamp,
+                    );
+
+                    // Persist to storage
+                    persistRecentChats(updatedChats).catch((err) =>
+                      console.error('[ChatHistory] Failed to persist:', err),
+                    );
+
+                    return updatedChats;
+                  });
+                } catch (err) {
+                  console.error('[ChatHistory] Error processing message:', err);
+                }
+              },
+            );
+          },
+          onStompError: (frame) => {
+            console.error('[ChatHistory] STOMP error:', frame);
+            setWsConnected(false);
+          },
+          onWebSocketError: (event) => {
+            console.error('[ChatHistory] WebSocket error:', event);
+            setWsConnected(false);
+          },
+          onDisconnect: () => {
+            console.log('[ChatHistory] WebSocket disconnected');
+            setWsConnected(false);
+          },
+        });
+
+        stompClientRef.current = client;
+        client.activate();
+      } catch (error) {
+        console.error('[ChatHistory] Failed to connect WebSocket:', error);
+        setWsConnected(false);
+      }
+    };
+
+    void connectWebSocket();
+
+    return () => {
+      if (stompClientRef.current) {
+        console.log('[ChatHistory] Deactivating WebSocket');
+        stompClientRef.current.deactivate();
+        stompClientRef.current = null;
+      }
+      setWsConnected(false);
+    };
+  }, []);
+
   const handleOpenChat = (chat: RecentChat) => {
     router.push({
       pathname: '/(tenant)/chat/[name]',
@@ -197,7 +347,7 @@ const ChatHistoryScreen = () => {
         <FlatList
           data={chats}
           keyExtractor={(item, index) =>
-            `${item.partnerId ?? item.partnerEmail ?? index}`
+            `chat-${item.conversationId ?? ''}-${item.partnerId ?? ''}-${item.partnerEmail ?? ''}-${index}`
           }
           renderItem={renderItem}
           refreshControl={

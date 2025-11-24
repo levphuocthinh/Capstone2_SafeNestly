@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Card, Button, Avatar, List, Switch } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { logoutUser } from '@/services/auth.service';
 
 interface UserProfile {
   name: string;
@@ -80,7 +81,6 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       // Import logout function from auth utils
-      const { logoutUser } = require('../../utils/auth');
       await logoutUser();
 
       // Navigate to login screen and reset navigation stack

@@ -4,6 +4,7 @@ import {
   storeUser,
   clearStoredAuth,
   clearStoredUser,
+  getStoredUser,
 } from '../utils/auth-storage';
 
 // User interface
@@ -60,6 +61,10 @@ export const authenticateUser = async (
       // Store tokens and user data
       await storeTokens(data.token, data.refreshToken || '');
       await storeUser(user);
+      const storedUser = await getStoredUser();
+      console.log('Stored user:', storedUser);
+      const storedToken = await getStoredRefreshToken();
+      console.log('Stored refresh token:', storedToken);
       return {
         success: true,
         user,
@@ -68,6 +73,7 @@ export const authenticateUser = async (
       };
     } else {
       await clearStoredAuth();
+      await clearStoredUser();
       return {
         success: false,
         error: data.message || data.error || 'Login failed',

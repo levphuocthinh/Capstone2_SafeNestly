@@ -1,186 +1,680 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Card, TextInput, Avatar } from 'react-native-paper';
-import { useLocalSearchParams } from 'expo-router';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import {
+  Text,
+  HelperText,
+  TextInput,
+  IconButton,
+  Card,
+  Avatar,
+  useTheme,
+  ActivityIndicator,
+} from 'react-native-paper';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../../../components/ui/back-button';
+import SockJS from 'sockjs-client';
+import { Client, IMessage } from '@stomp/stompjs';
+
+import { buildApiUrl, getApiBaseUrl } from '../../../utils/api';
+import {
+  getStoredToken,
+  getStoredUser,
+  User,
+} from '../../../utils/auth-storage';
+import { upsertRecentChat } from '../../../utils/chat-history';
 
 interface ChatMessage {
   id: string;
+  backendId?: number;
   text: string;
-  sender: 'landlord' | 'tenant';
-  timestamp: string;
-  read: boolean;
+  sender: 'user' | 'other';
+  timestampLabel: string;
+  rawTimestamp: number;
 }
 
-interface Contact {
-  name: string;
-  avatar: string;
-  lastSeen: string;
-  status: 'online' | 'offline';
-}
+type RawMessage = Record<string, any>;
 
-const mockMessages: ChatMessage[] = [
-  {
-    id: '1',
-    text: "Hi! I'm interested in your downtown apartment listing.",
-    sender: 'tenant',
-    timestamp: '2024-01-20 10:30',
-    read: true,
-  },
-  {
-    id: '2',
-    text: 'Hello Sarah! Thank you for your interest. When would you like to schedule a viewing?',
-    sender: 'landlord',
-    timestamp: '2024-01-20 10:45',
-    read: true,
-  },
-  {
-    id: '3',
-    text: "I'm available this weekend. Would Saturday morning work?",
-    sender: 'tenant',
-    timestamp: '2024-01-20 11:00',
-    read: true,
-  },
-  {
-    id: '4',
-    text: "Saturday at 10 AM works perfectly. I'll send you the exact address.",
-    sender: 'landlord',
-    timestamp: '2024-01-20 11:15',
-    read: true,
-  },
-  {
-    id: '5',
-    text: 'Great! Looking forward to seeing the place. Do you have any specific requirements for tenants?',
-    sender: 'tenant',
-    timestamp: '2024-01-20 11:30',
-    read: false,
-  },
-];
-
-const mockContact: Contact = {
-  name: 'Sarah Johnson',
-  avatar: 'https://via.placeholder.com/50',
-  lastSeen: '2 hours ago',
-  status: 'offline',
+const normalizeParam = (value?: string | string[]): string | undefined => {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value[value.length - 1] : undefined;
+  }
+  return value;
 };
 
 export default function ChatScreen() {
-  const { name } = useLocalSearchParams();
-  const [messages, setMessages] = useState(mockMessages);
-  const [newMessage, setNewMessage] = useState('');
-  const [contact] = useState(mockContact);
+  const params = useLocalSearchParams<{
+    name?: string | string[];
+    tenantId?: string | string[];
+    backendUserId?: string | string[];
+    tenantEmail?: string | string[];
+    conversationId?: string | string[];
+  }>();
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const message: ChatMessage = {
-        id: Date.now().toString(),
-        text: newMessage.trim(),
-        sender: 'landlord',
-        timestamp: new Date().toLocaleString(),
-        read: false,
+  const theme = useTheme();
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [connectionState, setConnectionState] = useState<
+    'idle' | 'connecting' | 'connected' | 'error'
+  >('idle');
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const stompClientRef = useRef<Client | null>(null);
+  const pendingMessagesRef = useRef<RawMessage[]>([]);
+
+  const [userSession, setUserSession] = useState<User | null>(null);
+  const myEmail = userSession?.email ?? '';
+  const myId = userSession?.id;
+
+  const initialName = normalizeParam(params.name);
+  const initialBackendUserId = normalizeParam(params.backendUserId);
+  const initialTenantEmail = normalizeParam(params.tenantEmail);
+  const initialConversationIdRaw = normalizeParam(params.conversationId);
+  const initialConversationId = initialConversationIdRaw
+    ? Number.parseInt(initialConversationIdRaw, 10)
+    : undefined;
+
+  const [partner, setPartner] = useState<{
+    id?: number;
+    email?: string;
+    name: string;
+    conversationId?: number;
+  }>(() => ({
+    id: initialBackendUserId
+      ? Number.parseInt(initialBackendUserId, 10)
+      : undefined,
+    email: initialTenantEmail || undefined,
+    name: initialName || 'Tenant',
+    conversationId: initialConversationId,
+  }));
+
+  const conversationId = useMemo(() => {
+    if (!myId || !partner.id) {
+      return undefined;
+    }
+    const sorted = [myId, partner.id].sort((a, b) => a - b);
+    return `conv_${sorted[0]}_${sorted[1]}`;
+  }, [myId, partner.id]);
+
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, []);
+
+  const formatTimestamp = (value?: number | string) => {
+    if (value === undefined || value === null) {
+      return { label: '', raw: Date.now() };
+    }
+    const numeric =
+      typeof value === 'number'
+        ? value
+        : Number.parseInt(String(value).trim(), 10);
+    const raw = Number.isNaN(numeric) ? Date.now() : numeric;
+    const date = new Date(raw);
+    return {
+      label: date.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      raw,
+    };
+  };
+
+  const mapBackendMessage = useCallback(
+    (payload: Record<string, any>): ChatMessage => {
+      const { label, raw } = formatTimestamp(payload.timestamp);
+      const senderIdentifier =
+        payload.senderName ?? payload.senderEmail ?? payload.senderId;
+      const isUserMessage =
+        senderIdentifier &&
+        typeof senderIdentifier === 'string' &&
+        myEmail &&
+        senderIdentifier.toLowerCase() === myEmail.toLowerCase();
+
+      return {
+        id: payload.id ? String(payload.id) : `msg-${raw}-${Math.random()}`,
+        backendId: payload.id,
+        text: payload.message ?? '',
+        sender: isUserMessage ? 'user' : 'other',
+        timestampLabel: label,
+        rawTimestamp: raw,
+      };
+    },
+    [myEmail],
+  );
+
+  const fetchPartnerDetails = useCallback(async () => {
+    if (partner.email || !partner.id) {
+      return;
+    }
+    const token = await getStoredToken();
+    if (!token) {
+      setError(
+        'Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại để tiếp tục trò chuyện.',
+      );
+      return;
+    }
+    try {
+      const response = await fetch(
+        buildApiUrl(`/owner/get-users/${partner.id}`),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        },
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Không thể lấy thông tin người dùng (mã ${response.status}).`,
+        );
+      }
+      const data = await response.json();
+      const usersList = Array.isArray(data?.usersList)
+        ? data.usersList
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
+      if (usersList.length > 0) {
+        const [user] = usersList;
+        setPartner((prev) => ({
+          id: prev.id,
+          email: user.email ?? prev.email,
+          name: user.fullName ?? prev.name,
+          conversationId: prev.conversationId,
+        }));
+      }
+    } catch (err) {
+      console.warn('Không thể tải thông tin người dùng:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể tải thông tin người dùng.',
+      );
+    }
+  }, [partner.email, partner.id]);
+
+  useEffect(() => {
+    const loadUserSession = async () => {
+      const user = await getStoredUser();
+      setUserSession(user);
+    };
+    loadUserSession();
+  }, []);
+
+  useEffect(() => {
+    fetchPartnerDetails();
+  }, [fetchPartnerDetails]);
+
+  const updateRecentChat = useCallback(
+    (latest?: ChatMessage) => {
+      if (!partner.name) {
+        return;
+      }
+      void upsertRecentChat({
+        conversationId: partner.conversationId ?? initialConversationId,
+        partnerId: partner.id,
+        partnerEmail: partner.email,
+        partnerName: partner.name,
+        lastMessagePreview: latest?.text ?? partner.email ?? undefined,
+        lastTimestamp: latest?.rawTimestamp ?? Date.now(),
+      });
+    },
+    [
+      partner.email,
+      partner.id,
+      partner.name,
+      partner.conversationId,
+      initialConversationId,
+    ],
+  );
+
+  const fetchChatHistory = useCallback(async () => {
+    if (!myEmail || (!partner.email && !partner.id)) {
+      return;
+    }
+    const token = await getStoredToken();
+    if (!token) {
+      setError(
+        'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để xem lịch sử trò chuyện.',
+      );
+      return;
+    }
+
+    const receiverIdentifier = partner.email ?? String(partner.id);
+    const url = buildApiUrl(
+      `/messages/api/messages/history/${encodeURIComponent(myEmail)}/${encodeURIComponent(receiverIdentifier)}`,
+    );
+
+    setHistoryLoading(true);
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Không thể tải lịch sử trò chuyện (mã ${response.status}).`,
+        );
+      }
+      const data = await response.json();
+      const parsedData = data as { data?: RawMessage[] };
+      const rawMessages: RawMessage[] = Array.isArray(data)
+        ? (data as RawMessage[])
+        : Array.isArray(parsedData?.data)
+          ? (parsedData.data ?? [])
+          : [];
+
+      const mapped = rawMessages
+        .filter(Boolean)
+        .map((msg) => mapBackendMessage(msg))
+        .sort((a, b) => a.rawTimestamp - b.rawTimestamp);
+      setMessages(mapped);
+      if (mapped.length > 0) {
+        updateRecentChat(mapped[mapped.length - 1]);
+      } else {
+        updateRecentChat();
+      }
+      setError('');
+    } catch (err) {
+      console.error('Lỗi tải lịch sử trò chuyện:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Không thể tải lịch sử trò chuyện.',
+      );
+    } finally {
+      setHistoryLoading(false);
+      scrollToBottom();
+    }
+  }, [
+    mapBackendMessage,
+    myEmail,
+    partner.email,
+    partner.id,
+    scrollToBottom,
+    updateRecentChat,
+  ]);
+
+  const handleIncomingMessage = useCallback(
+    (messageEvent: IMessage) => {
+      try {
+        const payload = JSON.parse(messageEvent.body);
+        const mapped = mapBackendMessage(payload);
+        setMessages((prev) => {
+          // Check if this message already exists by backendId
+          const existsByBackendId =
+            mapped.backendId !== undefined &&
+            prev.some(
+              (item) =>
+                item.backendId !== undefined &&
+                item.backendId === mapped.backendId,
+            );
+          if (existsByBackendId) {
+            return prev;
+          }
+
+          // Check if this is a confirmation of a message we just sent (within 5 seconds)
+          // by matching text content and sender
+          const isOwnMessage = mapped.sender === 'user';
+          if (isOwnMessage) {
+            const recentlySentIndex = prev.findIndex(
+              (item) =>
+                item.text === mapped.text &&
+                item.sender === 'user' &&
+                !item.backendId &&
+                Math.abs(item.rawTimestamp - mapped.rawTimestamp) < 5000,
+            );
+
+            if (recentlySentIndex !== -1) {
+              // Replace the temporary message with the confirmed one
+              const updated = [...prev];
+              updated[recentlySentIndex] = mapped;
+              return updated;
+            }
+          }
+
+          const next = [...prev, mapped].sort(
+            (a, b) => a.rawTimestamp - b.rawTimestamp,
+          );
+          updateRecentChat(mapped);
+          return next;
+        });
+        scrollToBottom();
+      } catch (err) {
+        console.error('Không thể parse tin nhắn đến:', err);
+      }
+    },
+    [mapBackendMessage, scrollToBottom, updateRecentChat],
+  );
+
+  const flushPendingMessages = useCallback(() => {
+    const client = stompClientRef.current;
+    if (!client || !client.active) {
+      return;
+    }
+    pendingMessagesRef.current.forEach((payload: RawMessage) => {
+      client.publish({
+        destination: '/app/private-message',
+        body: JSON.stringify(payload),
+      });
+    });
+    pendingMessagesRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    const initWebSocket = async () => {
+      if (!myEmail || !partner.email) {
+        return;
+      }
+
+      // Check if we have valid authentication
+      const token = await getStoredToken();
+      if (!token) {
+        setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        setConnectionState('error');
+        return;
+      }
+
+      setConnectionState('connecting');
+
+      const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
+      const socketUrl = `${baseUrl}/ws?username=${encodeURIComponent(myEmail)}`;
+
+      const client = new Client({
+        webSocketFactory: () => new SockJS(socketUrl),
+        connectHeaders: {
+          username: myEmail,
+        },
+        debug: (str) => {
+          console.log('STOMP: ' + str);
+        },
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      });
+
+      client.onConnect = () => {
+        console.log('WebSocket connected for user:', myEmail);
+        setConnectionState('connected');
+        setError('');
+        fetchChatHistory();
+        flushPendingMessages();
+
+        const privateQueue = `/user/${myEmail}/private`;
+        console.log('Subscribing to:', privateQueue);
+        client.subscribe(privateQueue, handleIncomingMessage);
       };
 
-      setMessages([...messages, message]);
-      setNewMessage('');
+      client.onStompError = (frame) => {
+        console.error('STOMP error:', frame);
+        setConnectionState('error');
+        setError(frame.body || 'Kết nối chat gặp lỗi.');
+      };
+
+      client.onWebSocketClose = () => {
+        console.warn('WebSocket closed');
+        setConnectionState('error');
+      };
+
+      client.onWebSocketError = (error) => {
+        console.error('WebSocket error:', error);
+        setConnectionState('error');
+      };
+
+      stompClientRef.current = client;
+      client.activate();
+    };
+
+    initWebSocket();
+
+    return () => {
+      pendingMessagesRef.current = [];
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate();
+      }
+      stompClientRef.current = null;
+    };
+  }, [
+    myEmail,
+    partner.email,
+    fetchChatHistory,
+    flushPendingMessages,
+    handleIncomingMessage,
+  ]);
+
+  const handleSendMessage = useCallback(() => {
+    const trimmed = message.trim();
+    if (!trimmed || !myEmail || !partner.email || !myId || !partner.id) {
+      return;
     }
-  };
 
-  const renderMessage = (message: ChatMessage) => {
-    const isLandlord = message.sender === 'landlord';
+    const now = Date.now();
+    const { label } = formatTimestamp(now);
+    const outgoingMessage: ChatMessage = {
+      id: `local-${now}`,
+      text: trimmed,
+      sender: 'user',
+      timestampLabel: label,
+      rawTimestamp: now,
+    };
 
+    setMessages((prev) => [...prev, outgoingMessage]);
+    setMessage('');
+    scrollToBottom();
+    updateRecentChat(outgoingMessage);
+
+    const payload = {
+      senderName: myEmail,
+      senderId: myId,
+      receiverName: partner.email,
+      receiverId: partner.id,
+      message: trimmed,
+      status: 'MESSAGE',
+      type: 'PRIVATE',
+      conversationId: conversationId ?? undefined,
+    };
+
+    const client = stompClientRef.current;
+    if (client && client.connected) {
+      client.publish({
+        destination: '/app/private-message',
+        body: JSON.stringify(payload),
+      });
+    } else {
+      pendingMessagesRef.current.push(payload);
+      if (client && !client.active) {
+        client.activate();
+      }
+    }
+  }, [
+    conversationId,
+    message,
+    myEmail,
+    myId,
+    partner.email,
+    partner.id,
+    scrollToBottom,
+    updateRecentChat,
+  ]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, scrollToBottom]);
+
+  const partnerInitial = partner.name?.charAt(0) || 'U';
+
+  if (!userSession) {
     return (
-      <View
-        key={message.id}
-        style={[
-          styles.messageContainer,
-          isLandlord ? styles.landlordMessage : styles.tenantMessage,
-        ]}
-      >
-        <View
-          style={[
-            styles.messageBubble,
-            isLandlord ? styles.landlordBubble : styles.tenantBubble,
-          ]}
-        >
-          <Text
-            variant='bodyMedium'
-            style={[
-              styles.messageText,
-              isLandlord ? styles.landlordText : styles.tenantText,
-            ]}
-          >
-            {message.text}
-          </Text>
-          <Text
-            variant='labelSmall'
-            style={[
-              styles.timestamp,
-              isLandlord ? styles.landlordTimestamp : styles.tenantTimestamp,
-            ]}
-          >
-            {new Date(message.timestamp).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.container, styles.loadingState]}>
+          <HelperText type='error' visible>
+            Vui lòng đăng nhập để sử dụng tính năng chat.
+          </HelperText>
+          <IconButton icon='arrow-left' onPress={() => router.back()} />
         </View>
-      </View>
+      </SafeAreaView>
     );
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title={`Chat with ${name || contact.name}`} />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {/* Chat Header */}
+        <View style={styles.header}>
+          <IconButton
+            icon='arrow-left'
+            size={24}
+            onPress={() => router.back()}
+          />
+          <Avatar.Text size={40} label={partnerInitial} />
+          <View style={styles.headerInfo}>
+            <Text variant='titleMedium' style={styles.contactName}>
+              {partner.name}
+            </Text>
+            <Text variant='bodySmall' style={styles.onlineStatus}>
+              {connectionState === 'connected'
+                ? 'Online'
+                : connectionState === 'connecting'
+                  ? 'Đang kết nối...'
+                  : 'Đang ngoại tuyến'}
+            </Text>
+          </View>
+          <IconButton
+            icon='phone'
+            size={24}
+            onPress={() => {
+              console.log('Voice call');
+            }}
+          />
+          <IconButton
+            icon='video'
+            size={24}
+            onPress={() => {
+              console.log('Video call');
+            }}
+          />
+        </View>
 
-      {/* Chat Header */}
-      <Card style={styles.headerCard}>
-        <Card.Content>
-          <View style={styles.headerContent}>
-            <Avatar.Image size={40} source={{ uri: contact.avatar }} />
-            <View style={styles.contactInfo}>
-              <Text variant='titleMedium' style={styles.contactName}>
-                {name || contact.name}
-              </Text>
-              <Text variant='bodySmall' style={styles.lastSeen}>
-                {contact.status === 'online'
-                  ? '🟢 Online'
-                  : `Last seen ${contact.lastSeen}`}
+        {error ? (
+          <HelperText type='error' visible style={styles.helperText}>
+            {error}
+          </HelperText>
+        ) : null}
+
+        {/* Messages */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
+          onContentSizeChange={() =>
+            scrollViewRef.current?.scrollToEnd({ animated: true })
+          }
+        >
+          {historyLoading && messages.length === 0 ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator animating size='large' />
+              <Text style={styles.loadingText}>
+                Đang tải lịch sử trò chuyện...
               </Text>
             </View>
-          </View>
-        </Card.Content>
-      </Card>
+          ) : null}
+          {messages.map((item) => (
+            <View
+              key={item.id}
+              style={[
+                styles.messageContainer,
+                item.sender === 'user'
+                  ? styles.userMessage
+                  : styles.otherMessage,
+              ]}
+            >
+              <Card
+                style={[
+                  styles.messageCard,
+                  {
+                    backgroundColor:
+                      item.sender === 'user'
+                        ? theme.colors.primary
+                        : theme.colors.surface,
+                  },
+                ]}
+              >
+                <Card.Content style={styles.messageContent}>
+                  <Text
+                    variant='bodyMedium'
+                    style={[
+                      styles.messageText,
+                      {
+                        color:
+                          item.sender === 'user'
+                            ? theme.colors.onPrimary
+                            : theme.colors.onSurface,
+                      },
+                    ]}
+                  >
+                    {item.text}
+                  </Text>
+                  <Text
+                    variant='bodySmall'
+                    style={[
+                      styles.timestamp,
+                      {
+                        color:
+                          item.sender === 'user'
+                            ? theme.colors.onPrimary
+                            : theme.colors.onSurface,
+                      },
+                    ]}
+                  >
+                    {item.timestampLabel}
+                  </Text>
+                </Card.Content>
+              </Card>
+            </View>
+          ))}
+        </ScrollView>
 
-      {/* Messages */}
-      <ScrollView
-        style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
-      >
-        {messages.map(renderMessage)}
-      </ScrollView>
-
-      {/* Message Input */}
-      <Card style={styles.inputCard}>
-        <Card.Content>
-          <View style={styles.inputContainer}>
-            <TextInput
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder='Type a message...'
-              style={styles.textInput}
-              multiline
-              right={
-                <TextInput.Icon
-                  icon='send'
-                  onPress={handleSendMessage}
-                  disabled={!newMessage.trim()}
-                />
-              }
-            />
-          </View>
-        </Card.Content>
-      </Card>
+        {/* Message Input */}
+        <View style={styles.inputContainer}>
+          <TextInput
+            mode='outlined'
+            placeholder='Nhập tin nhắn...'
+            value={message}
+            onChangeText={setMessage}
+            style={styles.textInput}
+            multiline
+            onSubmitEditing={handleSendMessage}
+            right={
+              <TextInput.Icon
+                icon='send'
+                onPress={handleSendMessage}
+                disabled={!message.trim()}
+              />
+            }
+          />
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -190,83 +684,79 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  headerCard: {
-    margin: 16,
-    marginBottom: 8,
-  },
-  headerContent: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
-  contactInfo: {
-    marginLeft: 12,
+  headerInfo: {
     flex: 1,
+    marginLeft: 12,
   },
   contactName: {
     fontWeight: '600',
   },
-  lastSeen: {
-    opacity: 0.7,
-    marginTop: 2,
+  onlineStatus: {
+    color: '#4CAF50',
+    opacity: 0.8,
   },
   messagesContainer: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   messagesContent: {
-    paddingVertical: 8,
+    padding: 16,
   },
   messageContainer: {
     marginVertical: 4,
   },
-  landlordMessage: {
+  userMessage: {
     alignItems: 'flex-end',
   },
-  tenantMessage: {
+  otherMessage: {
     alignItems: 'flex-start',
   },
-  messageBubble: {
+  messageCard: {
     maxWidth: '80%',
-    padding: 12,
-    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
   },
-  landlordBubble: {
-    backgroundColor: '#6200ee',
-    borderBottomRightRadius: 4,
-  },
-  tenantBubble: {
-    backgroundColor: 'white',
-    borderBottomLeftRadius: 4,
-    elevation: 1,
+  messageContent: {
+    padding: 8,
   },
   messageText: {
     marginBottom: 4,
   },
-  landlordText: {
-    color: 'white',
-  },
-  tenantText: {
-    color: '#000',
-  },
   timestamp: {
     fontSize: 11,
+    opacity: 0.7,
   },
-  landlordTimestamp: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  tenantTimestamp: {
-    color: 'rgba(0, 0, 0, 0.5)',
-  },
-  inputCard: {
-    margin: 16,
-    marginTop: 8,
+  helperText: {
+    marginHorizontal: 16,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
   },
   textInput: {
+    backgroundColor: '#fff',
+  },
+  loadingState: {
     flex: 1,
-    maxHeight: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    opacity: 0.7,
   },
 });
