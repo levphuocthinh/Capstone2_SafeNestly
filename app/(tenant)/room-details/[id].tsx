@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { roomService, RoomDTO } from '../../../services/room.service';
 import { mapsService, LocationResponse } from '../../../services/maps.service';
 import { vatService, SafetyScoreResponse } from '../../../services/vat.service';
+import { viewRequestService } from '../../../services/view-request.service';
 import Markdown from 'react-native-markdown-display';
 
 const { width } = Dimensions.get('window');
@@ -42,6 +43,7 @@ export default function RoomDetailsScreen() {
     null,
   );
   const [loadingSafetyScore, setLoadingSafetyScore] = useState(false);
+  const [submittingRequest, setSubmittingRequest] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -138,9 +140,51 @@ export default function RoomDetailsScreen() {
     Alert.alert('Info', 'Save room functionality coming soon!');
   };
 
-  const handleContactLandlord = () => {
-    if (!room) return;
-    router.push(`../chat/${room.ownerName || 'Landlord'}`);
+  const handleViewRequest = async () => {
+    if (!room || !id) {
+      Alert.alert('Lỗi', 'Không tìm thấy thông tin phòng.');
+      return;
+    }
+
+    try {
+      setSubmittingRequest(true);
+
+      // Gọi service để tạo view request
+      const result = await viewRequestService.createViewRequest(
+        parseInt(id, 10),
+        room,
+      );
+
+      if (result.success) {
+        // Hiển thị thông báo thành công
+        Alert.alert(
+          'Thành công',
+          'Yêu cầu xem phòng đã được gửi thành công. Chủ nhà sẽ liên hệ với bạn sớm nhất.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Có thể navigate đến trang xem danh sách yêu cầu hoặc quay lại
+                // router.push('./my-view-requests');
+              },
+            },
+          ],
+        );
+      } else {
+        // Hiển thị thông báo lỗi
+        Alert.alert('Lỗi', result.error || 'Không thể gửi yêu cầu.');
+      }
+    } catch (error) {
+      console.error('Error submitting view request:', error);
+      Alert.alert(
+        'Lỗi',
+        error instanceof Error
+          ? error.message
+          : 'Không thể gửi yêu cầu. Vui lòng kiểm tra kết nối mạng và thử lại.',
+      );
+    } finally {
+      setSubmittingRequest(false);
+    }
   };
 
   const handleCallLandlord = () => {
@@ -459,10 +503,12 @@ export default function RoomDetailsScreen() {
         <Button
           mode='contained'
           icon='message'
-          onPress={handleContactLandlord}
+          onPress={handleViewRequest}
           style={styles.chatButton}
+          loading={submittingRequest}
+          disabled={submittingRequest}
         >
-          Contact Landlord
+          {submittingRequest ? 'Đang gửi...' : 'Gửi Yêu Cầu Xem Phòng'}
         </Button>
       </View>
 
