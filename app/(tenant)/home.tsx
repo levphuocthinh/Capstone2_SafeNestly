@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,9 +17,14 @@ import {
   FAB,
   IconButton,
 } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { roomService, RoomDTO } from '../../services/room.service';
+import { buildApiUrl } from '../../utils/api';
+import { getStoredToken } from '../../utils/auth-storage';
+
+const READ_NOTIFICATIONS_KEY = 'read_notifications';
 
 export default function TenantHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,10 +32,84 @@ export default function TenantHomeScreen() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch rooms from API on component mount
   useEffect(() => {
     fetchRooms();
+  }, []);
+
+  // Fetch unread notifications count
+  const fetchUnreadCount = async () => {
+    try {
+      const token = await getStoredToken();
+      if (!token) {
+        setUnreadCount(0);
+        return;
+      }
+
+      const response = await fetch(buildApiUrl('/api/notifications'), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        let notifications = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+        // Lấy danh sách notifications đã đọc từ AsyncStorage
+        const readIdsJson = await AsyncStorage.getItem(READ_NOTIFICATIONS_KEY);
+        const readIds = readIdsJson
+          ? new Set(JSON.parse(readIdsJson) as string[])
+          : new Set();
+
+        // Đếm số notifications chưa đọc
+        // Reverse để đảm bảo thứ tự giống notifications screen (mới nhất trước)
+        const reversedNotifications = [...notifications].reverse();
+        const unread = reversedNotifications.filter(
+          (notif: any, index: number) => {
+            // Tạo unique ID giống với logic trong notifications.tsx (dùng index)
+            const notificationId = `${notif.userId}-${notif.type}-${notif.message}-${index}`;
+            return !readIds.has(notificationId);
+          },
+        );
+
+        setUnreadCount(unread.length);
+      } else {
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+      setUnreadCount(0);
+    }
+  };
+
+  // Fetch unread count when component mounts
+  useEffect(() => {
+    fetchUnreadCount();
+  }, []);
+
+  // Refresh unread count when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnreadCount();
+    }, []),
+  );
+
+  // Tự động refresh unread count mỗi 30 giây để cập nhật khi có thông báo mới
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 30000); // 30 giây
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchRooms = async () => {
@@ -89,6 +168,11 @@ export default function TenantHomeScreen() {
     router.push('./chat-history');
   };
 
+  const handleNotifications = () => {
+    // Navigate to notifications screen
+    // The notifications screen will automatically fetch notifications from API
+    router.push('./notifications');
+  };
   const renderRoomCard = ({ item }: { item: RoomDTO }) => (
     <Card
       style={styles.roomCard}
@@ -161,6 +245,20 @@ export default function TenantHomeScreen() {
             </View>
           </View>
           <View style={styles.headerActions}>
+            <View style={styles.notificationContainer}>
+              <IconButton
+                icon='bell-outline'
+                size={26}
+                onPress={handleNotifications}
+              />
+              {unreadCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
             <IconButton
               icon='message-text-outline'
               size={26}
@@ -328,6 +426,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  notificationContainer: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#F44336',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'white',
+    zIndex: 1,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   greeting: {
     fontSize: 14,

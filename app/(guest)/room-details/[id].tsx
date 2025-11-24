@@ -124,8 +124,14 @@ export default function GuestRoomDetailsScreen() {
       );
       setSafetyScore(safetyResponse);
     } catch (error) {
-      console.error('Error fetching safety score:', error);
-      // Don't show error alert, just log it - safety score is optional
+      // Log lỗi chi tiết để debug
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching safety score:', errorMessage, error);
+
+      // Safety score là optional feature, không làm crash app
+      // Chỉ log lỗi, không hiển thị alert để tránh làm phiền user
+      // App vẫn hoạt động bình thường mà không có safety score
     } finally {
       setLoadingSafetyScore(false);
     }
