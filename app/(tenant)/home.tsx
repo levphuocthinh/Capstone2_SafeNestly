@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -21,10 +21,37 @@ import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { roomService, RoomDTO } from '../../services/room.service';
-import { buildApiUrl } from '../../utils/api';
-import { getStoredToken } from '../../utils/auth-storage';
+import { buildApiUrl, getApiBaseUrl } from '../../utils/api';
+import { getStoredToken, getStoredUser } from '../../utils/auth-storage';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
 
 const READ_NOTIFICATIONS_KEY = 'read_notifications';
+
+// Interface cho Notification từ backend
+interface NotificationDto {
+  id?: number;
+  userId: number;
+  message: string;
+  type: string;
+  createdAt?: string;
+}
+
+// Hàm tạo unique ID từ notification content (giống với notifications.tsx)
+// Dùng hash đơn giản của userId-type-message để tạo unique ID ổn định
+const getNotificationId = (notification: NotificationDto): string => {
+  // Tạo hash đơn giản từ content để có unique ID ổn định
+  const content = `${notification.userId}-${notification.type}-${notification.message}`;
+  // Sử dụng hash đơn giản
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Nếu notification có id từ backend thì dùng id, nếu không dùng hash
+  return notification.id ? `id-${notification.id}` : `hash-${Math.abs(hash)}`;
+};
 
 export default function TenantHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +60,7 @@ export default function TenantHomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const stompClientRef = useRef<Client | null>(null);
 
   // Fetch rooms from API on component mount
   useEffect(() => {
@@ -40,7 +68,7 @@ export default function TenantHomeScreen() {
   }, []);
 
   // Fetch unread notifications count
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const token = await getStoredToken();
       if (!token) {
@@ -71,15 +99,11 @@ export default function TenantHomeScreen() {
           : new Set();
 
         // Đếm số notifications chưa đọc
-        // Reverse để đảm bảo thứ tự giống notifications screen (mới nhất trước)
-        const reversedNotifications = [...notifications].reverse();
-        const unread = reversedNotifications.filter(
-          (notif: any, index: number) => {
-            // Tạo unique ID giống với logic trong notifications.tsx (dùng index)
-            const notificationId = `${notif.userId}-${notif.type}-${notif.message}-${index}`;
-            return !readIds.has(notificationId);
-          },
-        );
+        // Dùng cùng logic getNotificationId như notifications.tsx
+        const unread = notifications.filter((notif: NotificationDto) => {
+          const notificationId = getNotificationId(notif);
+          return !readIds.has(notificationId);
+        });
 
         setUnreadCount(unread.length);
       } else {
@@ -89,28 +113,105 @@ export default function TenantHomeScreen() {
       console.error('Error fetching unread count:', error);
       setUnreadCount(0);
     }
-  };
+  }, []);
 
   // Fetch unread count when component mounts
   useEffect(() => {
     fetchUnreadCount();
-  }, []);
+  }, [fetchUnreadCount]);
 
   // Refresh unread count when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       fetchUnreadCount();
-    }, []),
+    }, [fetchUnreadCount]),
   );
 
-  // Tự động refresh unread count mỗi 30 giây để cập nhật khi có thông báo mới
+  // WebSocket connection để nhận notifications real-time
+  useEffect(() => {
+    let client: Client | null = null;
+
+    const connectWebSocket = async () => {
+      try {
+        const user = await getStoredUser();
+        const token = await getStoredToken();
+
+        if (!user?.id || !token) {
+          console.warn('[Home] No user ID or token, skipping WebSocket');
+          return;
+        }
+
+        const baseUrl = getApiBaseUrl();
+        const wsUrl = `${baseUrl}/ws?username=${encodeURIComponent(user.email || '')}`;
+
+        client = new Client({
+          webSocketFactory: () => new SockJS(wsUrl) as any,
+          connectHeaders: {
+            username: user.email || '',
+          },
+          debug: (str) => {
+            console.log('[Home WS]', str);
+          },
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+          onConnect: () => {
+            console.log('[Home] WebSocket connected for notifications');
+            if (!client) return;
+
+            // Subscribe to notifications topic cho user
+            const notificationTopic = `/topic/notifications/${user.id}`;
+            console.log('[Home] Subscribing to:', notificationTopic);
+
+            client.subscribe(notificationTopic, (message) => {
+              try {
+                const notification = JSON.parse(message.body);
+                console.log('[Home] Received notification:', notification);
+
+                // Khi nhận được thông báo mới, refresh unread count ngay lập tức
+                fetchUnreadCount();
+              } catch (err) {
+                console.error('[Home] Error processing notification:', err);
+              }
+            });
+          },
+          onStompError: (frame) => {
+            console.error('[Home] STOMP error:', frame);
+          },
+          onWebSocketError: (event) => {
+            console.error('[Home] WebSocket error:', event);
+          },
+          onDisconnect: () => {
+            console.log('[Home] WebSocket disconnected');
+          },
+        });
+
+        stompClientRef.current = client;
+        client.activate();
+      } catch (error) {
+        console.error('[Home] Failed to connect WebSocket:', error);
+      }
+    };
+
+    connectWebSocket();
+
+    // Cleanup khi component unmount
+    return () => {
+      if (stompClientRef.current) {
+        stompClientRef.current.deactivate();
+        stompClientRef.current = null;
+      }
+    };
+  }, [fetchUnreadCount]);
+
+  // Tự động refresh unread count mỗi 30 giây để cập nhật khi có thông báo mới (backup)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchUnreadCount();
     }, 30000); // 30 giây
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUnreadCount]);
 
   const fetchRooms = async () => {
     try {
