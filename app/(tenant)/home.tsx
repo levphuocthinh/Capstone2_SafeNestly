@@ -339,9 +339,9 @@ export default function TenantHomeScreen() {
           <View style={styles.userInfo}>
             <Avatar.Icon size={40} icon='account' />
             <View style={styles.userText}>
-              <Text style={styles.greeting}>Good morning!</Text>
+              <Text style={styles.greeting}>Chào buổi sáng!</Text>
               <Text variant='headlineMedium' style={styles.userName}>
-                Find your perfect room
+                Tìm phòng hoàn hảo của bạn
               </Text>
             </View>
           </View>
@@ -378,7 +378,7 @@ export default function TenantHomeScreen() {
         {/* Search Section */}
         <View style={styles.searchSection}>
           <Searchbar
-            placeholder='Search by city, address...'
+            placeholder='Tìm kiếm theo thành phố, địa chỉ...'
             onChangeText={handleSearch}
             value={searchQuery}
             style={styles.searchBar}
@@ -401,7 +401,7 @@ export default function TenantHomeScreen() {
               onPress={handleMapView}
               style={styles.mapButton}
             >
-              Map
+              Bản đồ
             </Button>
           </View>
         </View>
@@ -409,7 +409,7 @@ export default function TenantHomeScreen() {
         {/* Active Filters */}
         {selectedFilters.length > 0 && (
           <View style={styles.filtersContainer}>
-            <Text style={styles.filtersTitle}>Active Filters:</Text>
+            <Text style={styles.filtersTitle}>Bộ lọc đang áp dụng:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.filterChips}>
                 {selectedFilters.map((filter) => (
@@ -429,7 +429,7 @@ export default function TenantHomeScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           <Text variant='titleLarge' style={styles.sectionTitle}>
-            Quick Actions
+            Hành động nhanh
           </Text>
           <View style={styles.actionButtons}>
             <Button
@@ -438,7 +438,7 @@ export default function TenantHomeScreen() {
               onPress={handleRoommateForm}
               style={styles.actionButton}
             >
-              Find Roommate
+              Tìm bạn cùng phòng
             </Button>
             <Button
               mode='contained-tonal'
@@ -446,7 +446,7 @@ export default function TenantHomeScreen() {
               onPress={() => router.push('/(tenant)/favorites')}
               style={styles.actionButton}
             >
-              Saved Rooms
+              Phòng đã lưu
             </Button>
           </View>
         </View>
@@ -454,24 +454,26 @@ export default function TenantHomeScreen() {
         {/* Recommended Rooms */}
         <View style={styles.roomsSection}>
           <Text variant='titleLarge' style={styles.sectionTitle}>
-            Recommended for You
+            Gợi ý cho bạn
           </Text>
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size='large' color='#6200ee' />
-              <Text style={styles.loadingText}>Loading rooms...</Text>
+              <Text style={styles.loadingText}>
+                Đang tải danh sách phòng...
+              </Text>
             </View>
           ) : rooms.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                No rooms available at the moment
+                Hiện tại không có phòng nào khả dụng
               </Text>
               <Button
                 mode='contained'
                 onPress={fetchRooms}
                 style={styles.retryButton}
               >
-                Retry
+                Thử lại
               </Button>
             </View>
           ) : (
@@ -493,7 +495,7 @@ export default function TenantHomeScreen() {
         icon='plus'
         style={styles.fab}
         onPress={handleFilterPress}
-        label='New Search'
+        label='Nhập tìm kiếm mới'
       />
     </SafeAreaView>
   );
