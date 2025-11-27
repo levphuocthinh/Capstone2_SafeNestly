@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Text, Card, Button, Avatar, List, Switch } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '@/services/auth.service';
+import { api, ApiResponse } from '@/utils/fetcher';
 
 interface UserProfile {
   name: string;
@@ -19,13 +20,13 @@ interface UserProfile {
   };
 }
 
-const mockProfile: UserProfile = {
-  name: 'Alex Thompson',
-  email: 'alex.thompson@email.com',
-  phone: '+1 (555) 123-4567',
+const defaultProfile: UserProfile = {
+  name: '',
+  email: '',
+  phone: '',
   avatar: 'https://via.placeholder.com/100x100',
-  verified: true,
-  memberSince: 'January 2024',
+  verified: false,
+  memberSince: '',
   preferences: {
     notifications: true,
     emailUpdates: false,
@@ -33,8 +34,61 @@ const mockProfile: UserProfile = {
   },
 };
 
+// Helper function to format date
+const formatMemberSince = (dateString?: string): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  } catch (error) {
+    return '';
+  }
+};
+
 export default function ProfileScreen() {
-  const [profile, setProfile] = useState(mockProfile);
+  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Call API directly to get full response with all fields
+        const data: ApiResponse & { isVerified?: boolean; avatarUrl?: string } =
+          await api.get('renterowner/get-profile').json();
+
+        if (data.statusCode === 200) {
+          setProfile({
+            name: data.fullName || '',
+            email: data.email || '',
+            phone: data.phone || 'Not provided',
+            avatar: data.avatarUrl || 'https://via.placeholder.com/100x100',
+            verified: data.isVerified || false,
+            memberSince: formatMemberSince(data.createdAt),
+            preferences: {
+              notifications: true,
+              emailUpdates: false,
+              locationTracking: true,
+            },
+          });
+        } else {
+          setError(data.message || 'Failed to load profile');
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleEditProfile = () => {
     router.push('./edit-profile');
@@ -92,6 +146,69 @@ export default function ProfileScreen() {
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' color='#6200ee' />
+          <Text style={styles.loadingText}>Đang tải hồ sơ...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Lỗi: {error}</Text>
+          <Button
+            mode='contained'
+            onPress={async () => {
+              setLoading(true);
+              setError(null);
+              // Retry fetching
+              try {
+                const data: ApiResponse & {
+                  isVerified?: boolean;
+                  avatarUrl?: string;
+                } = await api.get('renterowner/get-profile').json();
+
+                if (data.statusCode === 200) {
+                  setProfile({
+                    name: data.fullName || '',
+                    email: data.email || '',
+                    phone: data.phone || 'Not provided',
+                    avatar:
+                      data.avatarUrl || 'https://via.placeholder.com/100x100',
+                    verified: data.isVerified || false,
+                    memberSince: formatMemberSince(data.createdAt),
+                    preferences: {
+                      notifications: true,
+                      emailUpdates: false,
+                      locationTracking: true,
+                    },
+                  });
+                } else {
+                  setError(data.message || 'Failed to load profile');
+                }
+              } catch (err) {
+                setError(
+                  err instanceof Error ? err.message : 'An error occurred',
+                );
+              } finally {
+                setLoading(false);
+              }
+            }}
+            style={styles.retryButton}
+          >
+            Retry
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollContainer}>
@@ -105,7 +222,7 @@ export default function ProfileScreen() {
             Back
           </Button>
           <Text variant='headlineMedium' style={styles.headerTitle}>
-            Profile
+            Hồ Sơ Cá Nhân
           </Text>
           <View style={styles.headerSpacer} />
         </View>
@@ -126,12 +243,12 @@ export default function ProfileScreen() {
                 <Text style={styles.userEmail}>{profile.email}</Text>
                 {profile.verified && (
                   <View style={styles.verifiedBadge}>
-                    <Text style={styles.verifiedText}>✓ Verified</Text>
+                    <Text style={styles.verifiedText}>✓ Đã xác minh</Text>
                   </View>
                 )}
               </View>
               <Text style={styles.memberSince}>
-                Member since {profile.memberSince}
+                Thành viên từ {profile.memberSince}
               </Text>
             </View>
             <Button
@@ -139,7 +256,7 @@ export default function ProfileScreen() {
               onPress={handleEditProfile}
               style={styles.editButton}
             >
-              Edit Profile
+              Chỉnh sửa hồ sơ
             </Button>
           </Card.Content>
         </Card>
@@ -148,19 +265,19 @@ export default function ProfileScreen() {
         <Card style={styles.settingsCard}>
           <Card.Content>
             <Text variant='titleLarge' style={styles.sectionTitle}>
-              Account
+              Tài khoản
             </Text>
 
             <List.Item
-              title='Personal Information'
-              description='Update your personal details'
+              title='Thông tin cá nhân'
+              description='Cập nhật thông tin cá nhân của bạn'
               left={(props) => <List.Icon {...props} icon='account-edit' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleEditProfile}
             />
 
             <List.Item
-              title='Phone Number'
+              title='Số điện thoại'
               description={profile.phone}
               left={(props) => <List.Icon {...props} icon='phone' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
@@ -168,8 +285,8 @@ export default function ProfileScreen() {
             />
 
             <List.Item
-              title='Password & Security'
-              description='Change password, two-factor authentication'
+              title='Mật khẩu & Bảo mật'
+              description='Đổi mật khẩu, xác thực hai yếu tố'
               left={(props) => <List.Icon {...props} icon='lock' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={() => router.push('./security')}
@@ -181,20 +298,20 @@ export default function ProfileScreen() {
         <Card style={styles.settingsCard}>
           <Card.Content>
             <Text variant='titleLarge' style={styles.sectionTitle}>
-              Preferences
+              Tùy chọn
             </Text>
 
             <List.Item
-              title='Roommate Preferences'
-              description='Update your roommate matching preferences'
+              title='Tùy chọn bạn cùng phòng'
+              description='Cập nhật tùy chọn ghép bạn cùng phòng'
               left={(props) => <List.Icon {...props} icon='account-multiple' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleRoommatePreferences}
             />
 
             <List.Item
-              title='Search Preferences'
-              description='Customize your room search criteria'
+              title='Tùy chọn tìm kiếm'
+              description='Tùy chỉnh tiêu chí tìm phòng của bạn'
               left={(props) => <List.Icon {...props} icon='home-search' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleSearchPreferences}
@@ -206,12 +323,12 @@ export default function ProfileScreen() {
         <Card style={styles.settingsCard}>
           <Card.Content>
             <Text variant='titleLarge' style={styles.sectionTitle}>
-              Notifications
+              Thông báo
             </Text>
 
             <List.Item
-              title='Push Notifications'
-              description='Receive notifications about new matches and messages'
+              title='Thông báo đẩy'
+              description='Nhận thông báo về ghép bạn và tin nhắn mới'
               left={(props) => <List.Icon {...props} icon='bell' />}
               right={() => (
                 <Switch
@@ -222,8 +339,8 @@ export default function ProfileScreen() {
             />
 
             <List.Item
-              title='Email Updates'
-              description='Receive weekly updates via email'
+              title='Cập nhật qua email'
+              description='Nhận cập nhật hàng tuần qua email'
               left={(props) => <List.Icon {...props} icon='email' />}
               right={() => (
                 <Switch
@@ -234,8 +351,8 @@ export default function ProfileScreen() {
             />
 
             <List.Item
-              title='Location Services'
-              description='Allow location access for better recommendations'
+              title='Dịch vụ vị trí'
+              description='Cho phép truy cập vị trí để gợi ý tốt hơn'
               left={(props) => <List.Icon {...props} icon='map-marker' />}
               right={() => (
                 <Switch
@@ -251,28 +368,28 @@ export default function ProfileScreen() {
         <Card style={styles.settingsCard}>
           <Card.Content>
             <Text variant='titleLarge' style={styles.sectionTitle}>
-              Support
+              Hỗ trợ
             </Text>
 
             <List.Item
-              title='Help Center'
-              description='FAQs and support articles'
+              title='Trung tâm trợ giúp'
+              description='Câu hỏi thường gặp và bài viết hỗ trợ'
               left={(props) => <List.Icon {...props} icon='help-circle' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={() => router.push('./help')}
             />
 
             <List.Item
-              title='Contact Us'
-              description='Get in touch with our support team'
+              title='Liên hệ chúng tôi'
+              description='Liên hệ với đội ngũ hỗ trợ của chúng tôi'
               left={(props) => <List.Icon {...props} icon='message-text' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={() => router.push('./contact')}
             />
 
             <List.Item
-              title='Terms & Privacy'
-              description='Read our terms of service and privacy policy'
+              title='Điều khoản & Quyền riêng tư'
+              description='Đọc điều khoản dịch vụ và chính sách quyền riêng tư của chúng tôi'
               left={(props) => <List.Icon {...props} icon='file-document' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={() => router.push('./terms')}
@@ -286,10 +403,10 @@ export default function ProfileScreen() {
             <View style={styles.logoutSection}>
               <View style={styles.logoutInfo}>
                 <Text variant='titleMedium' style={styles.logoutTitle}>
-                  Account Management
+                  Quản lý tài khoản
                 </Text>
                 <Text variant='bodyMedium' style={styles.logoutDescription}>
-                  Securely sign out of your SafeNestly account
+                  Đăng xuất tài khoản SafeNestly của bạn một cách an toàn
                 </Text>
               </View>
               <Button
@@ -301,7 +418,7 @@ export default function ProfileScreen() {
                 buttonColor='#dc3545'
                 textColor='white'
               >
-                Sign Out
+                Đăng xuất
               </Button>
             </View>
           </Card.Content>
@@ -432,5 +549,32 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
     opacity: 0.5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#dc3545',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 10,
   },
 });

@@ -195,12 +195,24 @@ export default function RoomDetailsScreen() {
     router.back();
   };
 
+  const formatMemberSince = (dateString?: string): string => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const month = date.toLocaleString('vi-VN', { month: 'long' });
+      const year = date.getFullYear();
+      return `${month} ${year}`;
+    } catch (error) {
+      return '';
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#6200ee' />
-          <Text style={styles.loadingText}>Loading room details...</Text>
+          <Text style={styles.loadingText}>Đang tải chi tiết phòng...</Text>
         </View>
       </SafeAreaView>
     );
@@ -210,9 +222,9 @@ export default function RoomDetailsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Room not found</Text>
+          <Text style={styles.errorText}>Không tìm thấy phòng</Text>
           <Button mode='contained' onPress={handleBack}>
-            Go Back
+            Quay lại
           </Button>
         </View>
       </SafeAreaView>
@@ -230,10 +242,10 @@ export default function RoomDetailsScreen() {
             onPress={handleBack}
             style={styles.backButton}
           >
-            Back
+            Quay lại
           </Button>
           <Button mode='text' icon='heart-outline' onPress={handleSaveRoom}>
-            Save
+            Lưu
           </Button>
         </View>
 
@@ -285,7 +297,7 @@ export default function RoomDetailsScreen() {
 
             <View style={styles.priceAreaContainer}>
               <Text style={styles.priceText}>
-                {room.price ? `${room.price}đ` : 'N/A'}/month
+                {room.price ? `${room.price}đ` : 'N/A'}/tháng
               </Text>
               <Text style={styles.areaText}>{room.roomSize || 0}m²</Text>
             </View>
@@ -293,23 +305,23 @@ export default function RoomDetailsScreen() {
             {room.numBedrooms !== undefined &&
               room.numBathrooms !== undefined && (
                 <Text variant='bodyMedium' style={styles.roomInfo}>
-                  🛏️ {room.numBedrooms} Bedroom
+                  🛏️ {room.numBedrooms} Phòng ngủ
                   {room.numBedrooms !== 1 ? 's' : ''} • 🚿 {room.numBathrooms}{' '}
-                  Bathroom{room.numBathrooms !== 1 ? 's' : ''}
+                  Phòng tắm{room.numBathrooms !== 1 ? 's' : ''}
                 </Text>
               )}
 
             <Divider style={styles.divider} />
 
-            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.sectionTitle}>Mô tả</Text>
             <Text variant='bodyMedium' style={styles.description}>
-              {room.description || 'No description available'}
+              {room.description || 'Không có mô tả'}
             </Text>
 
             {room.city || room.district || room.ward ? (
               <>
                 <Divider style={styles.divider} />
-                <Text style={styles.sectionTitle}>Address Details</Text>
+                <Text style={styles.sectionTitle}>Chi tiết địa chỉ</Text>
                 <Text variant='bodyMedium' style={styles.description}>
                   {[room.street, room.ward, room.district, room.city]
                     .filter(Boolean)
@@ -328,10 +340,10 @@ export default function RoomDetailsScreen() {
         {/* Location & Nearby Places */}
         <Card style={styles.safetyCard}>
           <Card.Content>
-            <Text style={styles.sectionTitle}>Location & Nearby Places</Text>
+            <Text style={styles.sectionTitle}>Vị trí & Địa điểm lân cận</Text>
             {locationData?.location && (
               <List.Item
-                title='Address'
+                title='Địa chỉ'
                 description={locationData.location.formattedAddress}
                 left={(props) => <List.Icon {...props} icon='map-marker' />}
               />
@@ -344,7 +356,7 @@ export default function RoomDetailsScreen() {
               loading={loadingLocation}
               disabled={!locationData || loadingLocation}
             >
-              View Nearby Places ({locationData?.nearbyPlaces?.length || 0})
+              Xem địa điểm lân cận ({locationData?.nearbyPlaces?.length || 0})
             </Button>
           </Card.Content>
         </Card>
@@ -352,19 +364,19 @@ export default function RoomDetailsScreen() {
         {/* Safety Score & AI Summary */}
         <Card style={styles.safetyCard}>
           <Card.Content>
-            <Text style={styles.sectionTitle}>Safety Score</Text>
+            <Text style={styles.sectionTitle}>Điểm an toàn</Text>
             {loadingSafetyScore ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size='small' color='#6200ee' />
                 <Text style={styles.loadingText}>
-                  Analyzing safety score...
+                  Đang phân tích điểm an toàn...
                 </Text>
               </View>
             ) : safetyScore ? (
               <>
                 <View style={styles.scoreContainer}>
                   <View style={styles.scoreItem}>
-                    <Text style={styles.scoreLabel}>Crime Safety</Text>
+                    <Text style={styles.scoreLabel}>An toàn tội phạm</Text>
                     <Text
                       style={[
                         styles.scoreValue,
@@ -382,7 +394,9 @@ export default function RoomDetailsScreen() {
                     </Text>
                   </View>
                   <View style={styles.scoreItem}>
-                    <Text style={styles.scoreLabel}>User Reviews</Text>
+                    <Text style={styles.scoreLabel}>
+                      Đánh giá của người dùng
+                    </Text>
                     <Text
                       style={[
                         styles.scoreValue,
@@ -400,7 +414,7 @@ export default function RoomDetailsScreen() {
                     </Text>
                   </View>
                   <View style={styles.scoreItem}>
-                    <Text style={styles.scoreLabel}>Environment</Text>
+                    <Text style={styles.scoreLabel}>Môi trường</Text>
                     <Text
                       style={[
                         styles.scoreValue,
@@ -422,9 +436,7 @@ export default function RoomDetailsScreen() {
                 <Divider style={styles.divider} />
 
                 <View style={styles.finalScoreContainer}>
-                  <Text style={styles.finalScoreLabel}>
-                    Overall Safety Score
-                  </Text>
+                  <Text style={styles.finalScoreLabel}>Tổng điểm an toàn</Text>
                   <Chip
                     icon='shield-check'
                     style={[
@@ -447,7 +459,7 @@ export default function RoomDetailsScreen() {
                 {safetyScore.ai_summary && (
                   <>
                     <Divider style={styles.divider} />
-                    <Text style={styles.sectionTitle}>AI Analysis</Text>
+                    <Text style={styles.sectionTitle}>Phân tích AI</Text>
                     <Card style={styles.aiSummaryCard}>
                       <Card.Content>
                         <Markdown style={markdownStyles}>
@@ -460,7 +472,7 @@ export default function RoomDetailsScreen() {
               </>
             ) : (
               <Text style={styles.noDataText}>
-                Safety score will be calculated based on location data
+                Điểm an toàn sẽ được tính toán dựa trên dữ liệu vị trí
               </Text>
             )}
           </Card.Content>
@@ -470,7 +482,7 @@ export default function RoomDetailsScreen() {
         {room.ownerName && (
           <Card style={styles.landlordCard}>
             <Card.Content>
-              <Text style={styles.sectionTitle}>Owner</Text>
+              <Text style={styles.sectionTitle}>Chủ nhà</Text>
               <View style={styles.landlordInfo}>
                 <Avatar.Icon size={60} icon='account' />
                 <View style={styles.landlordDetails}>
@@ -479,7 +491,7 @@ export default function RoomDetailsScreen() {
                   </Text>
                   {room.availableFrom && (
                     <Text style={styles.availabilityText}>
-                      Available from:{' '}
+                      Có sẵn từ:{' '}
                       {new Date(room.availableFrom).toLocaleDateString()}
                     </Text>
                   )}
@@ -498,7 +510,7 @@ export default function RoomDetailsScreen() {
           onPress={handleCallLandlord}
           style={styles.callButton}
         >
-          Call
+          Gọi
         </Button>
         <Button
           mode='contained'
@@ -523,7 +535,7 @@ export default function RoomDetailsScreen() {
             <Card.Content>
               <View style={styles.modalHeader}>
                 <Text variant='headlineSmall' style={styles.modalTitle}>
-                  Nearby Places
+                  Địa điểm lân cận
                 </Text>
                 <IconButton
                   icon='close'

@@ -46,23 +46,23 @@ export default function RoommateProfileScreen() {
     id: id || '1',
     name: 'Sarah Johnson',
     age: 24,
-    occupation: 'Software Engineer',
-    bio: "I'm a clean, organized person who loves cooking and hiking. Looking for a friendly roommate to share a cozy space with. I work from home sometimes but I'm pretty quiet.",
+    occupation: 'Kỹ sư phần mềm',
+    bio: 'Tôi là người sạch sẽ, ngăn nắp, yêu thích nấu ăn và leo núi. Tôi đang tìm một bạn cùng phòng thân thiện để chia sẻ không gian ấm cúng. Đôi khi tôi làm việc tại nhà nhưng rất yên tĩnh.',
     photo: 'sarah.jpg',
     compatibility: 92,
-    lifestyle: ['Health-conscious', 'Social', 'Tech-savvy'],
+    lifestyle: ['Quan tâm sức khỏe', 'Hòa đồng', 'Yêu công nghệ'],
     preferences: {
       cleanliness: 9,
       socialLevel: 7,
       noiseLevel: 4,
-      guestPolicy: 'Ask before inviting',
-      smokingPolicy: 'No smoking',
-      petPolicy: 'Cats okay',
+      guestPolicy: 'Hỏi trước khi mời',
+      smokingPolicy: 'Không hút thuốc',
+      petPolicy: 'Chấp nhận mèo',
     },
-    interests: ['Hiking', 'Cooking', 'Reading', 'Yoga', 'Photography'],
-    schedule: '9-5 weekdays, flexible weekends',
-    budget: '$800-1200/month',
-    moveInDate: 'Next month',
+    interests: ['Leo núi', 'Nấu ăn', 'Đọc sách', 'Yoga', 'Nhiếp ảnh'],
+    schedule: '9h-17h các ngày trong tuần, cuối tuần linh hoạt',
+    budget: '$800-1200/tháng',
+    moveInDate: 'Tháng sau',
   };
 
   const handleConnect = () => {
@@ -98,7 +98,7 @@ export default function RoommateProfileScreen() {
             onPress={() => router.back()}
           />
           <Text variant='titleLarge' style={styles.headerTitle}>
-            Roommate Profile
+            Hồ Sơ Bạn Cùng Phòng
           </Text>
           <IconButton
             icon={isFavorite ? 'heart' : 'heart-outline'}
@@ -160,7 +160,7 @@ export default function RoommateProfileScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Living Preferences
+              Sở thích & Thói quen
             </Text>
             {renderPreferenceItem(
               'Cleanliness Level',
@@ -190,7 +190,7 @@ export default function RoommateProfileScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Interests & Hobbies
+              Sở thích & Thói quen
             </Text>
             <View style={styles.interestsContainer}>
               {profile.interests.map((interest) => (
@@ -210,20 +210,20 @@ export default function RoommateProfileScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Additional Information
+              Thông tin thêm
             </Text>
             <List.Item
-              title='Schedule'
+              title='Lịch trình'
               description={profile.schedule}
               left={(props) => <List.Icon {...props} icon='clock' />}
             />
             <List.Item
-              title='Budget Range'
+              title='Ngân sách'
               description={profile.budget}
               left={(props) => <List.Icon {...props} icon='currency-usd' />}
             />
             <List.Item
-              title='Move-in Date'
+              title='Ngày chuyển vào'
               description={profile.moveInDate}
               left={(props) => <List.Icon {...props} icon='calendar' />}
             />
@@ -237,14 +237,14 @@ export default function RoommateProfileScreen() {
             style={styles.actionButton}
             onPress={() => router.back()}
           >
-            Back to Results
+            Quay lại kết quả
           </Button>
           <Button
             mode='contained'
             style={styles.actionButton}
             onPress={handleConnect}
           >
-            Connect
+            Kết nối
           </Button>
         </View>
       </ScrollView>
