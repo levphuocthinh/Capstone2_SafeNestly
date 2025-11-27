@@ -11,12 +11,12 @@ export default function SearchPreferencesScreen() {
       <BackButton />
       <View style={styles.content}>
         <Text variant='headlineMedium' style={styles.title}>
-          Search Preferences
+          Tùy Chọn Tìm Kiếm
         </Text>
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='bodyMedium'>
-              Search preferences configuration will be implemented here.
+              Cấu hình tùy chọn tìm kiếm sẽ được triển khai tại đây.
             </Text>
           </Card.Content>
         </Card>
@@ -25,7 +25,7 @@ export default function SearchPreferencesScreen() {
           onPress={() => router.back()}
           style={styles.button}
         >
-          Back to Profile
+          Quay lại Hồ Sơ
         </Button>
       </View>
     </SafeAreaView>
