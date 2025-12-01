@@ -13,94 +13,36 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import BackButton from '../../components/ui/back-button';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface FilterState {
   priceRange: [number, number];
   areaRange: [number, number];
-  amenities: string[];
-  petFriendly: boolean;
-  lifestyle: string[];
-  roomType: string[];
-  location: string;
+  numBedrooms: number | null;
+  numBathrooms: number | null;
+  city: string;
+  district: string;
+  ward: string;
+  isRoomAvailable: boolean | null;
 }
+
+const FILTER_STORAGE_KEY = 'applied_filters';
 
 export default function AdvancedFiltersScreen() {
   const theme = useTheme();
   const [filters, setFilters] = useState<FilterState>({
-    priceRange: [500, 2500],
-    areaRange: [20, 100],
-    amenities: [],
-    petFriendly: false,
-    lifestyle: [],
-    roomType: [],
-    location: '',
+    priceRange: [0, 50000000], // VNĐ
+    areaRange: [0, 200], // m²
+    numBedrooms: null,
+    numBathrooms: null,
+    city: '',
+    district: '',
+    ward: '',
+    isRoomAvailable: null,
   });
 
-  const amenityOptions = [
-    'WiFi',
-    'Kitchen',
-    'Air Conditioning',
-    'Heating',
-    'Washing Machine',
-    'Dryer',
-    'Balcony',
-    'Parking',
-    'Gym Access',
-    'Pool',
-    'Security',
-    'Pet Friendly',
-    'Furnished',
-    'Dishwasher',
-    'Microwave',
-    'Garden Access',
-  ];
-
-  const lifestyleOptions = [
-    'Quiet & Private',
-    'Social & Outgoing',
-    'Modern & Tech-savvy',
-    'Minimalist & Clean',
-    'Student Friendly',
-    'Professional Environment',
-    'Family Friendly',
-    'Party Friendly',
-  ];
-
-  const roomTypes = [
-    'Studio',
-    '1 Bedroom',
-    '2 Bedroom',
-    '3+ Bedroom',
-    'Shared Room',
-    'Private Room',
-  ];
-
-  const toggleAmenity = (amenity: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
-    }));
-  };
-
-  const toggleLifestyle = (lifestyle: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      lifestyle: prev.lifestyle.includes(lifestyle)
-        ? prev.lifestyle.filter((l) => l !== lifestyle)
-        : [...prev.lifestyle, lifestyle],
-    }));
-  };
-
-  const toggleRoomType = (type: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      roomType: prev.roomType.includes(type)
-        ? prev.roomType.filter((t) => t !== type)
-        : [...prev.roomType, type],
-    }));
-  };
+  const bedroomOptions = [0, 1, 2, 3, 4, 5];
+  const bathroomOptions = [0, 1, 2, 3, 4, 5];
 
   const updatePriceRange = (value: number, index: number) => {
     setFilters((prev) => ({
@@ -118,34 +60,95 @@ export default function AdvancedFiltersScreen() {
     }));
   };
 
-  const handleApplyFilters = () => {
-    // In a real app, you would pass these filters back to the home screen
-    // and use them to filter the room results
-    console.log('Applied filters:', filters);
+  const buildFilterString = (): string => {
+    const conditions: string[] = [];
 
-    // Navigate back with filters
-    router.back();
+    // Price range
+    if (filters.priceRange[0] > 0) {
+      conditions.push(`price:>${filters.priceRange[0]}`);
+    }
+    if (filters.priceRange[1] < 50000000) {
+      conditions.push(`price:<${filters.priceRange[1]}`);
+    }
+
+    // Area range (size)
+    if (filters.areaRange[0] > 0) {
+      conditions.push(`size:>${filters.areaRange[0]}`);
+    }
+    if (filters.areaRange[1] < 200) {
+      conditions.push(`size:<${filters.areaRange[1]}`);
+    }
+
+    // City
+    if (filters.city.trim()) {
+      conditions.push(`city:${encodeURIComponent(filters.city.trim())}`);
+    }
+
+    // District
+    if (filters.district.trim()) {
+      conditions.push(
+        `district:${encodeURIComponent(filters.district.trim())}`,
+      );
+    }
+
+    // Ward
+    if (filters.ward.trim()) {
+      conditions.push(`ward:${encodeURIComponent(filters.ward.trim())}`);
+    }
+
+    return conditions.join(',');
   };
 
-  const handleClearFilters = () => {
+  const handleApplyFilters = async () => {
+    try {
+      const filterString = buildFilterString();
+      const filterParams: any = {};
+
+      // Parse filter string để tạo query params
+      if (filterString) {
+        filterParams.filter = filterString;
+      }
+
+      // Lưu filter params vào AsyncStorage để home screen có thể đọc
+      await AsyncStorage.setItem(
+        FILTER_STORAGE_KEY,
+        JSON.stringify(filterParams),
+      );
+
+      console.log('Applied filters:', filterParams);
+
+      // Navigate back - home screen sẽ đọc từ AsyncStorage
+      router.back();
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    }
+  };
+
+  const handleClearFilters = async () => {
     setFilters({
-      priceRange: [500, 2500],
-      areaRange: [20, 100],
-      amenities: [],
-      petFriendly: false,
-      lifestyle: [],
-      roomType: [],
-      location: '',
+      priceRange: [0, 50000000],
+      areaRange: [0, 200],
+      numBedrooms: null,
+      numBathrooms: null,
+      city: '',
+      district: '',
+      ward: '',
+      isRoomAvailable: null,
     });
+    // Clear stored filters
+    await AsyncStorage.removeItem(FILTER_STORAGE_KEY);
   };
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (filters.amenities.length > 0) count++;
-    if (filters.lifestyle.length > 0) count++;
-    if (filters.roomType.length > 0) count++;
-    if (filters.petFriendly) count++;
-    if (filters.location.trim()) count++;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 50000000) count++;
+    if (filters.areaRange[0] > 0 || filters.areaRange[1] < 200) count++;
+    if (filters.numBedrooms !== null) count++;
+    if (filters.numBathrooms !== null) count++;
+    if (filters.city.trim()) count++;
+    if (filters.district.trim()) count++;
+    if (filters.ward.trim()) count++;
+    if (filters.isRoomAvailable !== null) count++;
     return count;
   };
 
@@ -156,15 +159,14 @@ export default function AdvancedFiltersScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text variant='headlineMedium' style={styles.title}>
-            Refine Your Search
+            Bộ Lọc Nâng Cao
           </Text>
           <Text variant='bodyLarge' style={styles.subtitle}>
-            Find your perfect room with advanced filters
+            Tìm phòng phù hợp với các tiêu chí của bạn
           </Text>
           {getActiveFiltersCount() > 0 && (
             <Chip icon='filter' style={styles.activeFiltersChip}>
-              {getActiveFiltersCount()} filter
-              {getActiveFiltersCount() > 1 ? 's' : ''} active
+              {getActiveFiltersCount()} bộ lọc đang áp dụng
             </Chip>
           )}
         </View>
@@ -173,18 +175,19 @@ export default function AdvancedFiltersScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              💰 Price Range
+              💰 Khoảng Giá
             </Text>
             <Text variant='bodyMedium' style={styles.rangeText}>
-              ${filters.priceRange[0]} - ${filters.priceRange[1]} per month
+              {filters.priceRange[0].toLocaleString('vi-VN')} -{' '}
+              {filters.priceRange[1].toLocaleString('vi-VN')} VNĐ/tháng
             </Text>
 
             <View style={styles.sliderContainer}>
-              <Text variant='bodySmall'>Min: $500</Text>
+              <Text variant='bodySmall'>Tối thiểu: 0 VNĐ</Text>
               <Slider
                 style={styles.slider}
-                minimumValue={500}
-                maximumValue={3000}
+                minimumValue={0}
+                maximumValue={50000000}
                 value={filters.priceRange[0]}
                 onValueChange={(value: number) =>
                   updatePriceRange(Math.round(value), 0)
@@ -192,15 +195,15 @@ export default function AdvancedFiltersScreen() {
                 minimumTrackTintColor={theme.colors.primary}
                 maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant='bodySmall'>Max: $3000</Text>
+              <Text variant='bodySmall'>Tối đa: 50M VNĐ</Text>
             </View>
 
             <View style={styles.sliderContainer}>
-              <Text variant='bodySmall'>Min Price</Text>
+              <Text variant='bodySmall'>Giá tối thiểu</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={filters.priceRange[0]}
-                maximumValue={3000}
+                maximumValue={50000000}
                 value={filters.priceRange[1]}
                 onValueChange={(value: number) =>
                   updatePriceRange(Math.round(value), 1)
@@ -208,7 +211,7 @@ export default function AdvancedFiltersScreen() {
                 minimumTrackTintColor={theme.colors.primary}
                 maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant='bodySmall'>Max Price</Text>
+              <Text variant='bodySmall'>Giá tối đa</Text>
             </View>
           </Card.Content>
         </Card>
@@ -217,18 +220,18 @@ export default function AdvancedFiltersScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              📐 Room Area
+              📐 Diện Tích Phòng
             </Text>
             <Text variant='bodyMedium' style={styles.rangeText}>
               {filters.areaRange[0]} - {filters.areaRange[1]} m²
             </Text>
 
             <View style={styles.sliderContainer}>
-              <Text variant='bodySmall'>Min: 15m²</Text>
+              <Text variant='bodySmall'>Tối thiểu: 0m²</Text>
               <Slider
                 style={styles.slider}
-                minimumValue={15}
-                maximumValue={150}
+                minimumValue={0}
+                maximumValue={200}
                 value={filters.areaRange[0]}
                 onValueChange={(value: number) =>
                   updateAreaRange(Math.round(value), 0)
@@ -236,15 +239,15 @@ export default function AdvancedFiltersScreen() {
                 minimumTrackTintColor={theme.colors.primary}
                 maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant='bodySmall'>Max: 150m²</Text>
+              <Text variant='bodySmall'>Tối đa: 200m²</Text>
             </View>
 
             <View style={styles.sliderContainer}>
-              <Text variant='bodySmall'>Min Area</Text>
+              <Text variant='bodySmall'>Diện tích tối thiểu</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={filters.areaRange[0]}
-                maximumValue={150}
+                maximumValue={200}
                 value={filters.areaRange[1]}
                 onValueChange={(value: number) =>
                   updateAreaRange(Math.round(value), 1)
@@ -252,141 +255,192 @@ export default function AdvancedFiltersScreen() {
                 minimumTrackTintColor={theme.colors.primary}
                 maximumTrackTintColor='#e0e0e0'
               />
-              <Text variant='bodySmall'>Max Area</Text>
+              <Text variant='bodySmall'>Diện tích tối đa</Text>
             </View>
           </Card.Content>
         </Card>
 
-        {/* Room Type */}
+        {/* Number of Bedrooms */}
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              🏠 Room Type
+              🛏️ Số Phòng Ngủ
             </Text>
             <View style={styles.chipContainer}>
-              {roomTypes.map((type) => (
+              <Chip
+                selected={filters.numBedrooms === null}
+                onPress={() =>
+                  setFilters((prev) => ({ ...prev, numBedrooms: null }))
+                }
+                style={[
+                  styles.chip,
+                  filters.numBedrooms === null && {
+                    backgroundColor: theme.colors.primary,
+                  },
+                ]}
+                textStyle={
+                  filters.numBedrooms === null ? { color: 'white' } : {}
+                }
+              >
+                Tất cả
+              </Chip>
+              {bedroomOptions.map((num) => (
                 <Chip
-                  key={type}
-                  selected={filters.roomType.includes(type)}
-                  onPress={() => toggleRoomType(type)}
+                  key={num}
+                  selected={filters.numBedrooms === num}
+                  onPress={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      numBedrooms: prev.numBedrooms === num ? null : num,
+                    }))
+                  }
                   style={[
                     styles.chip,
-                    filters.roomType.includes(type) && {
+                    filters.numBedrooms === num && {
                       backgroundColor: theme.colors.primary,
                     },
                   ]}
                   textStyle={
-                    filters.roomType.includes(type) ? { color: 'white' } : {}
+                    filters.numBedrooms === num ? { color: 'white' } : {}
                   }
                 >
-                  {type}
+                  {num === 0 ? 'Studio' : `${num} phòng`}
                 </Chip>
               ))}
             </View>
           </Card.Content>
         </Card>
 
-        {/* Amenities */}
+        {/* Number of Bathrooms */}
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              ⭐ Amenities ({filters.amenities.length} selected)
+              🚿 Số Phòng Tắm
             </Text>
             <View style={styles.chipContainer}>
-              {amenityOptions.map((amenity) => (
+              <Chip
+                selected={filters.numBathrooms === null}
+                onPress={() =>
+                  setFilters((prev) => ({ ...prev, numBathrooms: null }))
+                }
+                style={[
+                  styles.chip,
+                  filters.numBathrooms === null && {
+                    backgroundColor: theme.colors.primary,
+                  },
+                ]}
+                textStyle={
+                  filters.numBathrooms === null ? { color: 'white' } : {}
+                }
+              >
+                Tất cả
+              </Chip>
+              {bathroomOptions.map((num) => (
                 <Chip
-                  key={amenity}
-                  selected={filters.amenities.includes(amenity)}
-                  onPress={() => toggleAmenity(amenity)}
+                  key={num}
+                  selected={filters.numBathrooms === num}
+                  onPress={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      numBathrooms: prev.numBathrooms === num ? null : num,
+                    }))
+                  }
                   style={[
                     styles.chip,
-                    filters.amenities.includes(amenity) && {
+                    filters.numBathrooms === num && {
                       backgroundColor: theme.colors.primary,
                     },
                   ]}
                   textStyle={
-                    filters.amenities.includes(amenity)
-                      ? { color: 'white' }
-                      : {}
+                    filters.numBathrooms === num ? { color: 'white' } : {}
                   }
                 >
-                  {amenity}
+                  {num} phòng
                 </Chip>
               ))}
             </View>
           </Card.Content>
         </Card>
 
-        {/* Lifestyle Preferences */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant='titleMedium' style={styles.sectionTitle}>
-              🎨 Lifestyle Preferences
-            </Text>
-            <Text variant='bodySmall' style={styles.sectionDescription}>
-              Choose the living environment that matches your style
-            </Text>
-            <View style={styles.chipContainer}>
-              {lifestyleOptions.map((lifestyle) => (
-                <Chip
-                  key={lifestyle}
-                  selected={filters.lifestyle.includes(lifestyle)}
-                  onPress={() => toggleLifestyle(lifestyle)}
-                  style={[
-                    styles.chip,
-                    filters.lifestyle.includes(lifestyle) && {
-                      backgroundColor: theme.colors.primary,
-                    },
-                  ]}
-                  textStyle={
-                    filters.lifestyle.includes(lifestyle)
-                      ? { color: 'white' }
-                      : {}
-                  }
-                >
-                  {lifestyle}
-                </Chip>
-              ))}
-            </View>
-          </Card.Content>
-        </Card>
-
-        {/* Pet Policy */}
+        {/* Availability */}
         <Card style={styles.card}>
           <Card.Content>
             <View style={styles.switchContainer}>
               <View style={styles.switchContent}>
-                <Text variant='titleMedium'>🐕 Pet Friendly</Text>
+                <Text variant='titleMedium'>✅ Chỉ hiển thị phòng có sẵn</Text>
                 <Text variant='bodySmall' style={styles.switchDescription}>
-                  Allow pets in the accommodation
+                  Lọc các phòng đang có sẵn để cho thuê
                 </Text>
               </View>
               <Switch
-                value={filters.petFriendly}
+                value={filters.isRoomAvailable === true}
                 onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, petFriendly: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    isRoomAvailable: value ? true : null,
+                  }))
                 }
               />
             </View>
           </Card.Content>
         </Card>
 
-        {/* Location */}
+        {/* City */}
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              📍 Location
+              🏙️ Thành Phố
             </Text>
             <TextInput
-              label='Preferred area or neighborhood'
-              value={filters.location}
+              label='Thành phố'
+              value={filters.city}
               onChangeText={(text) =>
-                setFilters((prev) => ({ ...prev, location: text }))
+                setFilters((prev) => ({ ...prev, city: text }))
               }
               mode='outlined'
               style={styles.input}
-              placeholder='e.g., Downtown, University District, Near Metro'
+              placeholder='VD: Hà Nội, Đà Nẵng, TP.HCM'
+              left={<TextInput.Icon icon='city' />}
+            />
+          </Card.Content>
+        </Card>
+
+        {/* District */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
+              📍 Quận/Huyện
+            </Text>
+            <TextInput
+              label='Quận hoặc huyện'
+              value={filters.district}
+              onChangeText={(text) =>
+                setFilters((prev) => ({ ...prev, district: text }))
+              }
+              mode='outlined'
+              style={styles.input}
+              placeholder='VD: Hoàn Kiếm, Thanh Khê, Quận 1'
               left={<TextInput.Icon icon='map-marker' />}
+            />
+          </Card.Content>
+        </Card>
+
+        {/* Ward */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text variant='titleMedium' style={styles.sectionTitle}>
+              📍 Phường/Xã
+            </Text>
+            <TextInput
+              label='Phường hoặc xã'
+              value={filters.ward}
+              onChangeText={(text) =>
+                setFilters((prev) => ({ ...prev, ward: text }))
+              }
+              mode='outlined'
+              style={styles.input}
+              placeholder='VD: Phường Hàng Bông, Phường Hải Châu'
+              left={<TextInput.Icon icon='map-marker-outline' />}
             />
           </Card.Content>
         </Card>
@@ -399,14 +453,14 @@ export default function AdvancedFiltersScreen() {
           onPress={handleClearFilters}
           style={styles.clearButton}
         >
-          Clear All
+          Xóa Tất Cả
         </Button>
         <Button
           mode='contained'
           onPress={handleApplyFilters}
           style={styles.applyButton}
         >
-          Apply Filters
+          Áp Dụng Bộ Lọc
         </Button>
       </View>
     </SafeAreaView>

@@ -16,6 +16,7 @@ import {
   Avatar,
   FAB,
   IconButton,
+  useTheme,
 } from 'react-native-paper';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +28,7 @@ import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
 const READ_NOTIFICATIONS_KEY = 'read_notifications';
+const FILTER_STORAGE_KEY = 'applied_filters';
 
 // Interface cho Notification từ backend
 interface NotificationDto {
@@ -54,18 +56,184 @@ const getNotificationId = (notification: NotificationDto): string => {
 };
 
 export default function TenantHomeScreen() {
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [rooms, setRooms] = useState<RoomDTO[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [appliedFilterParams, setAppliedFilterParams] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const stompClientRef = useRef<Client | null>(null);
 
-  // Fetch rooms from API on component mount
-  useEffect(() => {
-    fetchRooms();
+  // Load applied filters from AsyncStorage
+  const loadAppliedFilters = useCallback(async () => {
+    try {
+      const filtersJson = await AsyncStorage.getItem(FILTER_STORAGE_KEY);
+      if (filtersJson) {
+        const filters = JSON.parse(filtersJson);
+
+        // Parse filter string to display active filters
+        const filterDescriptions: string[] = [];
+        if (filters.filter) {
+          const conditions = filters.filter.split(',');
+          conditions.forEach((cond: string) => {
+            if (cond.includes('price:>')) {
+              const price = cond.split(':>')[1];
+              filterDescriptions.push(
+                `Giá từ ${parseInt(price).toLocaleString('vi-VN')} VNĐ`,
+              );
+            } else if (cond.includes('price:<')) {
+              const price = cond.split(':<')[1];
+              filterDescriptions.push(
+                `Giá đến ${parseInt(price).toLocaleString('vi-VN')} VNĐ`,
+              );
+            } else if (cond.includes('size:>')) {
+              const size = cond.split(':>')[1];
+              filterDescriptions.push(`Diện tích từ ${parseFloat(size)} m²`);
+            } else if (cond.includes('size:<')) {
+              const size = cond.split(':<')[1];
+              filterDescriptions.push(`Diện tích đến ${parseFloat(size)} m²`);
+            } else if (cond.includes('city:')) {
+              const city = decodeURIComponent(cond.split('city:')[1]);
+              filterDescriptions.push(`Thành phố: ${city}`);
+            } else if (cond.includes('district:')) {
+              const district = decodeURIComponent(cond.split('district:')[1]);
+              filterDescriptions.push(`Quận/Huyện: ${district}`);
+            } else if (cond.includes('ward:')) {
+              const ward = decodeURIComponent(cond.split('ward:')[1]);
+              filterDescriptions.push(`Phường/Xã: ${ward}`);
+            }
+          });
+        }
+
+        setAppliedFilterParams(filters);
+        setSelectedFilters(filterDescriptions);
+        return filters;
+      } else {
+        setAppliedFilterParams(null);
+        setSelectedFilters([]);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error loading filters:', error);
+      return null;
+    }
   }, []);
+
+  // Fetch rooms function - reads from storage directly to avoid dependency issues
+  const fetchRooms = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // Build filter params - read directly from storage to avoid dependency loop
+      const filterParams: any = {};
+
+      // Read current filters from storage (don't use state to avoid dependency)
+      const filtersJson = await AsyncStorage.getItem(FILTER_STORAGE_KEY);
+      if (filtersJson) {
+        const currentFilterParams = JSON.parse(filtersJson);
+        if (currentFilterParams.filter) {
+          filterParams.filter = currentFilterParams.filter;
+        }
+        if (currentFilterParams.search) {
+          filterParams.search = currentFilterParams.search;
+        }
+      }
+
+      // Add search query if available (overrides filter search)
+      if (searchQuery.trim()) {
+        filterParams.search = searchQuery.trim();
+      }
+
+      const roomsData = await roomService.getAllRooms(
+        Object.keys(filterParams).length > 0 ? filterParams : undefined,
+      );
+      setRooms(roomsData);
+    } catch (error) {
+      console.error('Error fetching rooms:', error);
+      Alert.alert(
+        'Lỗi',
+        'Không thể tải danh sách phòng. Vui lòng kiểm tra kết nối và thử lại.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery]); // Only depend on searchQuery, not appliedFilterParams
+
+  // Load applied filters and fetch rooms on component mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const initData = async () => {
+      const loadedFilters = await loadAppliedFilters();
+      if (isMounted) {
+        // Fetch rooms after loading filters
+        fetchRooms();
+      }
+    };
+
+    initData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Only run once on mount
+
+  // Reload rooms when screen comes into focus (after applying filters)
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      const refreshData = async () => {
+        await loadAppliedFilters();
+        if (isMounted) {
+          // Fetch rooms after loading filters - use a fresh fetchRooms
+          try {
+            setLoading(true);
+            const filterParams: any = {};
+            const filtersJson = await AsyncStorage.getItem(FILTER_STORAGE_KEY);
+            if (filtersJson) {
+              const currentFilterParams = JSON.parse(filtersJson);
+              if (currentFilterParams.filter) {
+                filterParams.filter = currentFilterParams.filter;
+              }
+              if (currentFilterParams.search) {
+                filterParams.search = currentFilterParams.search;
+              }
+            }
+            if (searchQuery.trim()) {
+              filterParams.search = searchQuery.trim();
+            }
+            const roomsData = await roomService.getAllRooms(
+              Object.keys(filterParams).length > 0 ? filterParams : undefined,
+            );
+            if (isMounted) {
+              setRooms(roomsData);
+            }
+          } catch (error) {
+            console.error('Error fetching rooms:', error);
+            if (isMounted) {
+              Alert.alert(
+                'Lỗi',
+                'Không thể tải danh sách phòng. Vui lòng kiểm tra kết nối và thử lại.',
+              );
+            }
+          } finally {
+            if (isMounted) {
+              setLoading(false);
+            }
+          }
+        }
+      };
+
+      refreshData();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [searchQuery]), // Only depend on searchQuery
+  );
 
   // Fetch unread notifications count
   const fetchUnreadCount = useCallback(async () => {
@@ -213,36 +381,55 @@ export default function TenantHomeScreen() {
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
-  const fetchRooms = async () => {
-    try {
-      setLoading(true);
-      const roomsData = await roomService.getAllRooms();
-      setRooms(roomsData);
-    } catch (error) {
-      console.error('Error fetching rooms:', error);
-      Alert.alert(
-        'Error',
-        'Failed to load rooms. Please check your connection and try again.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = async () => {
     setRefreshing(true);
+
+    // Clear all filters when user refreshes
+    await AsyncStorage.removeItem(FILTER_STORAGE_KEY);
+    setAppliedFilterParams(null);
+    setSelectedFilters([]);
+
+    // Fetch rooms without filters
     await fetchRooms();
     setRefreshing(false);
   };
 
-  const removeFilter = (filter: string) => {
-    setSelectedFilters((prev) => prev.filter((f) => f !== filter));
+  const removeFilter = async (filterIndex: number) => {
+    // Remove specific filter from selected filters
+    const newFilters = selectedFilters.filter(
+      (_, index) => index !== filterIndex,
+    );
+    setSelectedFilters(newFilters);
+
+    // Clear all filters if no filters remain
+    if (newFilters.length === 0) {
+      await AsyncStorage.removeItem(FILTER_STORAGE_KEY);
+      setAppliedFilterParams(null);
+    }
+
+    // Reload rooms
+    fetchRooms();
+  };
+
+  const clearAllFilters = async () => {
+    await AsyncStorage.removeItem(FILTER_STORAGE_KEY);
+    setAppliedFilterParams(null);
+    setSelectedFilters([]);
+    fetchRooms();
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // Implement search logic with your backend
   };
+
+  // Fetch rooms when search query changes (with debounce)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchRooms();
+    }, 500); // Debounce 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, fetchRooms]);
 
   const handleRoomPress = (roomId: string) => {
     router.push(`/(tenant)/room-details/${roomId}`);
@@ -296,7 +483,7 @@ export default function TenantHomeScreen() {
             onPress={() => handleSaveRoom(item.id)}
             style={styles.saveButton}
           >
-            Save
+            Lưu
           </Button>
         </View>
 
@@ -307,7 +494,7 @@ export default function TenantHomeScreen() {
 
         <View style={styles.roomDetails}>
           <Text variant='headlineSmall' style={styles.priceText}>
-            {item.price || 0}đ/month
+            {item.price || 0}VNĐ/Tháng
           </Text>
           <Text variant='bodyMedium' style={styles.areaText}>
             {item.roomSize || 0}m² • {item.numBedrooms || 0} BR
@@ -320,11 +507,11 @@ export default function TenantHomeScreen() {
             {item.availableFrom
               ? new Date(item.availableFrom).toLocaleDateString()
               : item.isRoomAvailable
-                ? 'Available Now'
-                : 'Not Available'}
+                ? 'Có Sẵn'
+                : 'Không Có Sẵn'}
           </Text>
           {item.ownerName && (
-            <Text style={styles.ownerText}>Owner: {item.ownerName}</Text>
+            <Text style={styles.ownerText}>Chủ sở hữu: {item.ownerName}</Text>
           )}
         </View>
       </Card.Content>
@@ -339,9 +526,16 @@ export default function TenantHomeScreen() {
           <View style={styles.userInfo}>
             <Avatar.Icon size={40} icon='account' />
             <View style={styles.userText}>
-              <Text style={styles.greeting}>Chào buổi sáng!</Text>
-              <Text variant='headlineMedium' style={styles.userName}>
-                Tìm phòng hoàn hảo của bạn
+              <Text style={styles.greeting} numberOfLines={1}>
+                Chào buổi sáng!
+              </Text>
+              <Text
+                variant='headlineMedium'
+                style={styles.userName}
+                numberOfLines={1}
+                ellipsizeMode='tail'
+              >
+                SafeNestly
               </Text>
             </View>
           </View>
@@ -365,13 +559,11 @@ export default function TenantHomeScreen() {
               size={26}
               onPress={handleChatHistory}
             />
-            <Button
-              mode='text'
+            <IconButton
               icon='account-circle'
+              size={30}
               onPress={() => router.push('/(tenant)/profile')}
-            >
-              Profile
-            </Button>
+            />
           </View>
         </View>
 
@@ -393,7 +585,7 @@ export default function TenantHomeScreen() {
               onPress={handleFilterPress}
               style={styles.filterButton}
             >
-              Filters
+              Bộ Lọc
             </Button>
             <Button
               mode='contained'
@@ -409,13 +601,23 @@ export default function TenantHomeScreen() {
         {/* Active Filters */}
         {selectedFilters.length > 0 && (
           <View style={styles.filtersContainer}>
-            <Text style={styles.filtersTitle}>Bộ lọc đang áp dụng:</Text>
+            <View style={styles.filtersHeader}>
+              <Text style={styles.filtersTitle}>Bộ lọc đang áp dụng:</Text>
+              <Button
+                mode='text'
+                compact
+                onPress={clearAllFilters}
+                textColor={theme.colors.error}
+              >
+                Xóa tất cả
+              </Button>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.filterChips}>
-                {selectedFilters.map((filter) => (
+                {selectedFilters.map((filter, index) => (
                   <Chip
-                    key={filter}
-                    onClose={() => removeFilter(filter)}
+                    key={`${filter}-${index}`}
+                    onClose={() => removeFilter(index)}
                     style={styles.filterChip}
                   >
                     {filter}
@@ -524,11 +726,14 @@ const styles = StyleSheet.create({
   userText: {
     marginLeft: 12,
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flexShrink: 0,
   },
   notificationContainer: {
     position: 'relative',
@@ -560,6 +765,10 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '600',
+    flexShrink: 1,
+  },
+  profileButtonLabel: {
+    fontSize: 12,
   },
   searchSection: {
     padding: 20,
@@ -585,10 +794,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginBottom: 10,
   },
+  filtersHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   filtersTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
   },
   filterChips: {
     flexDirection: 'row',
