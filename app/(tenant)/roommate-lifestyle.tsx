@@ -21,6 +21,7 @@ import { TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { buildApiUrl, describeApiTarget } from '../../utils/api';
 import { getAuthToken } from '../../utils/auth';
+import { getUserProfile } from '../../services/profile.service';
 
 const roomStyleImages = [
   'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -95,30 +96,34 @@ export default function RoommateLifestyleScreen() {
     let isMounted = true;
 
     const fetchProfile = async () => {
-      const token = getAuthToken();
-      if (!token) {
-        setProfileError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-        return;
-      }
-
       try {
         setProfileLoading(true);
         setProfileError('');
-        const response = await fetch(buildApiUrl('/renterowner/get-profile'), {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          const message = await response.text().catch(() => '');
-          throw new Error(
-            message || `Yêu cầu thất bại với mã ${response.status}`,
-          );
-        }
-        const data = await response.json().catch(() => null);
+
+        const result = await getUserProfile();
+
         if (isMounted) {
-          setProfile(data);
+          if (result.success && result.profile) {
+            // Transform UserProfile to the format expected by this component
+            setProfile({
+              fullName: result.profile.name,
+              email: result.profile.email,
+              phone: result.profile.phone,
+              avatarUrl: result.profile.avatar,
+              isVerified: result.profile.verified,
+              createdAt: result.profile.memberSince,
+              // Add any other fields that might be needed
+              userId: undefined,
+              id: undefined,
+            } as Record<string, unknown>);
+          } else {
+            const friendlyMessage = result.error?.includes(
+              'Network request failed',
+            )
+              ? `Không thể kết nối tới API tại ${describeApiTarget()}. Nếu bạn dùng thiết bị thật, hãy dùng IP máy tính thay vì localhost hoặc cập nhật biến môi trường EXPO_PUBLIC_API_URL.`
+              : result.error || 'Không thể tải thông tin hồ sơ.';
+            setProfileError(friendlyMessage);
+          }
         }
       } catch (error) {
         if (isMounted) {

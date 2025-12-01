@@ -6,6 +6,7 @@ import {
   clearStoredUser,
   getStoredUser,
 } from '../utils/auth-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // User interface
 export interface User {
@@ -61,6 +62,15 @@ export const authenticateUser = async (
       // Store tokens and user data
       await storeTokens(data.token, data.refreshToken || '');
       await storeUser(user);
+
+      // Clear filter preferences when user logs in (fresh session)
+      try {
+        await AsyncStorage.removeItem('applied_filters');
+      } catch (error) {
+        console.error('Error clearing filters on login:', error);
+        // Continue with login even if clearing filters fails
+      }
+
       const storedUser = await getStoredUser();
       console.log('Stored user:', storedUser);
       const storedToken = await getStoredRefreshToken();
@@ -203,6 +213,8 @@ export const logoutUser = async (): Promise<void> => {
   try {
     await clearStoredAuth();
     await clearStoredUser();
+    // Clear filter preferences when user logs out
+    await AsyncStorage.removeItem('applied_filters');
   } catch (error) {
     console.error('Logout error:', error);
     // Continue with logout even if clearing storage fails

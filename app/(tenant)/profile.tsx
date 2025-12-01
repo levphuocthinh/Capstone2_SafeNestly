@@ -4,48 +4,11 @@ import { Text, Card, Button, Avatar, List, Switch } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '@/services/auth.service';
-import { api, ApiResponse } from '@/utils/fetcher';
-
-interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-  avatar: string;
-  verified: boolean;
-  memberSince: string;
-  preferences: {
-    notifications: boolean;
-    emailUpdates: boolean;
-    locationTracking: boolean;
-  };
-}
-
-const defaultProfile: UserProfile = {
-  name: '',
-  email: '',
-  phone: '',
-  avatar: 'https://via.placeholder.com/100x100',
-  verified: false,
-  memberSince: '',
-  preferences: {
-    notifications: true,
-    emailUpdates: false,
-    locationTracking: true,
-  },
-};
-
-// Helper function to format date
-const formatMemberSince = (dateString?: string): string => {
-  if (!dateString) return '';
-  try {
-    const date = new Date(dateString);
-    const month = date.toLocaleString('en-US', { month: 'long' });
-    const year = date.getFullYear();
-    return `${month} ${year}`;
-  } catch (error) {
-    return '';
-  }
-};
+import {
+  getUserProfile,
+  UserProfile,
+  defaultProfile,
+} from '@/services/profile.service';
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
@@ -58,26 +21,12 @@ export default function ProfileScreen() {
         setLoading(true);
         setError(null);
 
-        // Call API directly to get full response with all fields
-        const data: ApiResponse & { isVerified?: boolean; avatarUrl?: string } =
-          await api.get('renterowner/get-profile').json();
+        const result = await getUserProfile();
 
-        if (data.statusCode === 200) {
-          setProfile({
-            name: data.fullName || '',
-            email: data.email || '',
-            phone: data.phone || 'Not provided',
-            avatar: data.avatarUrl || 'https://via.placeholder.com/100x100',
-            verified: data.isVerified || false,
-            memberSince: formatMemberSince(data.createdAt),
-            preferences: {
-              notifications: true,
-              emailUpdates: false,
-              locationTracking: true,
-            },
-          });
+        if (result.success && result.profile) {
+          setProfile(result.profile);
         } else {
-          setError(data.message || 'Failed to load profile');
+          setError(result.error || 'Failed to load profile');
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -167,30 +116,13 @@ export default function ProfileScreen() {
             onPress={async () => {
               setLoading(true);
               setError(null);
-              // Retry fetching
+              // Retry fetching using service
               try {
-                const data: ApiResponse & {
-                  isVerified?: boolean;
-                  avatarUrl?: string;
-                } = await api.get('renterowner/get-profile').json();
-
-                if (data.statusCode === 200) {
-                  setProfile({
-                    name: data.fullName || '',
-                    email: data.email || '',
-                    phone: data.phone || 'Not provided',
-                    avatar:
-                      data.avatarUrl || 'https://via.placeholder.com/100x100',
-                    verified: data.isVerified || false,
-                    memberSince: formatMemberSince(data.createdAt),
-                    preferences: {
-                      notifications: true,
-                      emailUpdates: false,
-                      locationTracking: true,
-                    },
-                  });
+                const result = await getUserProfile();
+                if (result.success && result.profile) {
+                  setProfile(result.profile);
                 } else {
-                  setError(data.message || 'Failed to load profile');
+                  setError(result.error || 'Failed to load profile');
                 }
               } catch (err) {
                 setError(
