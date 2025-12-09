@@ -22,6 +22,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { buildApiUrl, describeApiTarget } from '../../utils/api';
 import { getAuthToken } from '../../utils/auth';
 import { getUserProfile } from '../../services/profile.service';
+import { getStoredToken, getStoredUser } from '@/utils/auth-storage';
 
 const roomStyleImages = [
   'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -100,6 +101,9 @@ export default function RoommateLifestyleScreen() {
         setProfileLoading(true);
         setProfileError('');
 
+        const token = await getStoredToken();
+        const user = await getStoredUser();
+
         const result = await getUserProfile();
 
         if (isMounted) {
@@ -113,7 +117,7 @@ export default function RoommateLifestyleScreen() {
               isVerified: result.profile.verified,
               createdAt: result.profile.memberSince,
               // Add any other fields that might be needed
-              userId: undefined,
+              userId: user?.id,
               id: undefined,
             } as Record<string, unknown>);
           } else {
@@ -194,7 +198,7 @@ export default function RoommateLifestyleScreen() {
       gender: mapGenderToApi(gender || (profile?.gender as string)),
     };
 
-    const token = getAuthToken();
+    const token = await getStoredToken();
     if (!token) {
       setApiError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
       return;
