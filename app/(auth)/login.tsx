@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
-import {
-  Text,
-  TextInput,
-  Button,
-  Card,
-  Divider,
-  useTheme,
-} from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Alert, Image } from 'react-native';
+import { Text, TextInput, Button, Card, Divider } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { authenticateUser } from '../../services/auth.service';
@@ -18,11 +11,10 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const theme = useTheme();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert('Lỗi', 'Vui lòng nhập email và mật khẩu');
       return;
     }
 
@@ -34,11 +26,14 @@ export default function LoginScreen() {
         const homeRoute = getHomeRouteForRole(result.user.role);
         router.replace(homeRoute as any);
       } else {
-        Alert.alert('Login Failed', result.error || 'Invalid credentials');
+        Alert.alert(
+          'Đăng nhập thất bại',
+          result.error || 'Thông tin đăng nhập không hợp lệ',
+        );
       }
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      Alert.alert('Lỗi', 'Đã có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -55,43 +50,49 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Professional Header */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoIcon}>🏠</Text>
-            </View>
-            <Text
-              variant='headlineLarge'
-              style={[styles.title, { color: theme.colors.primary }]}
-            >
-              SafeNestly
+            <Image
+              source={require('../../assets/images/logo.png')}
+              style={styles.logoImage}
+              resizeMode='contain'
+            />
+            <Text variant='headlineSmall' style={styles.mainSubtitle}>
+              Kết nối an toàn 🛡️
+            </Text>
+            <Text variant='headlineSmall' style={styles.mainSubtitle}>
+              ✨ Gợi ý tiện ích thông minh ✨
             </Text>
           </View>
-          <Text variant='bodyLarge' style={styles.subtitle}>
-            Your trusted platform for safe room rentals
-          </Text>
-          <Text variant='bodyMedium' style={styles.tagline}>
-            🛡️ Verified Properties • 🤝 Smart Roommate Matching • 📍 Safe
-            Neighborhoods
-          </Text>
+          <View style={styles.taglineContainer}>
+            <Text variant='bodyMedium' style={styles.taglineItem}>
+              📍 Đề xuất tiện ích xung quanh
+            </Text>
+            <Text variant='bodyMedium' style={styles.taglineItem}>
+              🤝 Gợi ý bạn ở ghép thông minh
+            </Text>
+            <Text variant='bodyMedium' style={styles.taglineItem}>
+              🛡️ Khu vực an toàn
+            </Text>
+          </View>
         </View>
 
-        {/* Main Login Card */}
+        {/* Card đăng nhập */}
         <Card style={styles.card} elevation={5}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardHeader}>
               <Text variant='headlineSmall' style={styles.cardTitle}>
-                Welcome Back
+                ĐĂNG NHẬP
               </Text>
               <Text variant='bodyMedium' style={styles.cardSubtitle}>
-                Sign in to continue your safe housing journey
+                Đăng nhập để tiếp tục hành trình tìm phòng trọ an toàn
               </Text>
             </View>
 
             <View style={styles.inputContainer}>
               <TextInput
-                label='Email Address'
+                label='Địa chỉ email'
                 value={email}
                 onChangeText={setEmail}
                 mode='outlined'
@@ -104,7 +105,7 @@ export default function LoginScreen() {
               />
 
               <TextInput
-                label='Password'
+                label='Mật khẩu'
                 value={password}
                 onChangeText={setPassword}
                 mode='outlined'
@@ -131,12 +132,12 @@ export default function LoginScreen() {
               contentStyle={styles.buttonContent}
               labelStyle={styles.buttonLabel}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </Button>
 
             <View style={styles.dividerContainer}>
               <Divider style={styles.divider} />
-              <Text style={styles.orText}>OR</Text>
+              <Text style={styles.orText}>HOẶC</Text>
               <Divider style={styles.divider} />
             </View>
 
@@ -148,35 +149,28 @@ export default function LoginScreen() {
               contentStyle={styles.buttonContent}
               labelStyle={styles.secondaryButtonLabel}
             >
-              Sign In with Phone
+              Đăng nhập bằng số điện thoại
             </Button>
-
-            {/* Quick Access Info */}
-            <View style={styles.quickAccessInfo}>
-              <Text variant='bodySmall' style={styles.quickAccessText}>
-                💡 Quick Access: Use test accounts below for instant demo
-              </Text>
-            </View>
           </Card.Content>
         </Card>
 
-        {/* Professional Footer */}
+        {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>New to SafeNestly? </Text>
+          <Text style={styles.footerText}>Chưa có tài khoản? </Text>
           <Button
             mode='text'
             onPress={handleRegister}
             compact
             labelStyle={styles.footerButtonLabel}
           >
-            Create Account
+            Đăng ký ngay
           </Button>
         </View>
 
-        {/* Guest Access Option */}
+        {/* Truy cập khách */}
         <View style={styles.guestAccessSection}>
           <Text variant='bodyMedium' style={styles.guestAccessText}>
-            Want to browse without signing up?
+            Muốn xem trước không cần đăng ký?
           </Text>
           <Button
             mode='outlined'
@@ -186,18 +180,18 @@ export default function LoginScreen() {
             contentStyle={styles.guestAccessButtonContent}
             labelStyle={styles.guestAccessButtonLabel}
           >
-            Browse as Guest
+            Xem với tư cách khách
           </Button>
           <Text variant='bodySmall' style={styles.guestAccessNote}>
-            Limited access • Sign up for full features
+            Giới hạn tính năng • Đăng ký để sử dụng đầy đủ
           </Text>
         </View>
 
-        {/* Additional Features Info */}
+        {/* Thông tin tính năng */}
         <View style={styles.featuresInfo}>
           <Text variant='bodySmall' style={styles.featuresText}>
-            ✨ AI-Powered Roommate Matching • 🔒 Verified Properties • 📱
-            Real-time Chat
+            ✨ Ghép đôi người ở ghép bằng AI • 🔒 Xác minh chính chủ • 📱 Chat
+            trực tuyến
           </Text>
         </View>
       </ScrollView>
@@ -217,29 +211,24 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#6200ee',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    elevation: 8,
-    shadowColor: '#6200ee',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+  logoImage: {
+    width: 250,
+    height: 250,
+    marginBottom: -10,
   },
-  logoIcon: {
-    fontSize: 40,
-    color: 'white',
+  mainSubtitle: {
+    fontSize: 23,
+    textAlign: 'center',
+    fontWeight: '700',
+    color: '#0085ff',
+    marginBottom: 5,
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 36,
@@ -253,11 +242,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '500',
   },
-  tagline: {
+  taglineContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    gap: 6,
+  },
+  taglineItem: {
     textAlign: 'center',
     opacity: 0.7,
     fontSize: 14,
-    paddingHorizontal: 20,
     lineHeight: 20,
   },
   card: {
@@ -270,14 +263,15 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginTop: 8,
+    marginBottom: 20,
   },
   cardTitle: {
     fontSize: 28,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#1a1a1a',
+    color: '#2530caff',
   },
   cardSubtitle: {
     textAlign: 'center',
@@ -286,7 +280,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: 15,
   },
   input: {
     marginBottom: 20,
@@ -297,7 +291,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   loginButton: {
-    marginBottom: 24,
+    marginBottom: 20,
     borderRadius: 12,
     elevation: 2,
   },

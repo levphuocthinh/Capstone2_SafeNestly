@@ -11,12 +11,13 @@ export default function HelpScreen() {
       <BackButton />
       <View style={styles.content}>
         <Text variant='headlineMedium' style={styles.title}>
-          Help & Support
+          Trợ giúp & Hỗ trợ
         </Text>
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='bodyMedium'>
-              Help documentation and support features will be implemented here.
+              Tài liệu trợ giúp và các tính năng hỗ trợ sẽ được triển khai tại
+              đây.
             </Text>
           </Card.Content>
         </Card>
@@ -25,7 +26,7 @@ export default function HelpScreen() {
           onPress={() => router.back()}
           style={styles.button}
         >
-          Back to Profile
+          Quay lại Hồ sơ
         </Button>
       </View>
     </SafeAreaView>

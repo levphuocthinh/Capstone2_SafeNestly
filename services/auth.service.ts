@@ -13,7 +13,7 @@ export interface User {
   id: number;
   email: string;
   fullName: string;
-  role: 'TENANT' | 'LANDLORD' | 'GUEST';
+  role: 'RENTER';
   phone?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   dob?: string;
@@ -51,7 +51,7 @@ export const authenticateUser = async (
         id: data.id!,
         email: data.email!,
         fullName: data.fullName!,
-        role: data.role as 'TENANT' | 'LANDLORD' | 'GUEST',
+        role: data.role as 'RENTER' | 'OWNER' | 'ADMIN',
         phone: data.phone,
         gender: data.gender as 'MALE' | 'FEMALE' | 'OTHER',
         dob: data.dob,
@@ -103,7 +103,7 @@ export const registerUser = async (userData: {
   email: string;
   password: string;
   fullName: string;
-  role: 'TENANT' | 'LANDLORD' | 'GUEST';
+  role: 'RENTER' | 'OWNER' | 'ADMIN';
   phone?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   dob?: string;
@@ -186,7 +186,7 @@ export const getUserProfile = async (): Promise<{
         id: data.id!,
         email: data.email!,
         fullName: data.fullName!,
-        role: data.role as 'TENANT' | 'LANDLORD' | 'GUEST',
+        role: data.role as 'RENTER' | 'OWNER' | 'ADMIN',
         phone: data.phone,
         gender: data.gender as 'MALE' | 'FEMALE' | 'OTHER',
         dob: data.dob,

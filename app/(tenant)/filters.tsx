@@ -74,26 +74,26 @@ export default function FiltersScreen() {
             variant='headlineMedium'
             style={[styles.title, { color: theme.colors.primary }]}
           >
-            Filter Results
+            Lọc kết quả
           </Text>
           <Text variant='bodyLarge' style={styles.subtitle}>
-            Customize your search preferences
+            Tùy chỉnh tùy chọn tìm kiếm của bạn
           </Text>
         </View>
 
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Price Range
+              Khoảng giá
             </Text>
             <View style={styles.priceContainer}>
               <Text variant='bodyMedium'>
-                ${priceRange[0]} - ${priceRange[1]} per month
+                ${priceRange[0]} - ${priceRange[1]} mỗi tháng
               </Text>
               <View style={styles.sliderContainer}>
                 {/* Note: React Native Paper doesn't have Slider, using placeholder */}
                 <View style={styles.sliderPlaceholder}>
-                  <Text variant='bodySmall'>Price slider placeholder</Text>
+                  <Text variant='bodySmall'>Thanh trượt giá</Text>
                 </View>
               </View>
             </View>
@@ -103,7 +103,7 @@ export default function FiltersScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Room Type
+              Loại phòng
             </Text>
             <View style={styles.chipContainer}>
               {roomTypes.map((type) => (
@@ -123,15 +123,15 @@ export default function FiltersScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Location
+              Vị trí
             </Text>
             <TextInput
-              label='Preferred area or neighborhood'
+              label='Khu vực hoặc phường ưa thích'
               value={location}
               onChangeText={setLocation}
               mode='outlined'
               style={styles.input}
-              placeholder='e.g., Downtown, University District'
+              placeholder='Ví dụ: Quận 1, Quận Tân Bình'
             />
           </Card.Content>
         </Card>
@@ -139,7 +139,7 @@ export default function FiltersScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='titleMedium' style={styles.sectionTitle}>
-              Amenities
+              Tiện nghi
             </Text>
             <View style={styles.chipContainer}>
               {amenityOptions.map((amenity) => (
