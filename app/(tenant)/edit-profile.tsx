@@ -11,12 +11,12 @@ export default function EditProfileScreen() {
       <BackButton />
       <View style={styles.content}>
         <Text variant='headlineMedium' style={styles.title}>
-          Edit Profile
+          Chỉnh sửa Hồ sơ
         </Text>
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='bodyMedium'>
-              Profile editing functionality will be implemented here.
+              Chức năng chỉnh sửa hồ sơ sẽ được triển khai tại đây.
             </Text>
           </Card.Content>
         </Card>
@@ -25,7 +25,7 @@ export default function EditProfileScreen() {
           onPress={() => router.back()}
           style={styles.button}
         >
-          Back to Profile
+          Quay lại Hồ sơ
         </Button>
       </View>
     </SafeAreaView>

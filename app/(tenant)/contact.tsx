@@ -11,12 +11,12 @@ export default function ContactScreen() {
       <BackButton />
       <View style={styles.content}>
         <Text variant='headlineMedium' style={styles.title}>
-          Contact Us
+          Liên hệ chúng tôi
         </Text>
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='bodyMedium'>
-              Contact information and support channels will be implemented here.
+              Thông tin liên hệ và các kênh hỗ trợ sẽ được triển khai tại đây.
             </Text>
           </Card.Content>
         </Card>
@@ -25,7 +25,7 @@ export default function ContactScreen() {
           onPress={() => router.back()}
           style={styles.button}
         >
-          Back to Profile
+          Quay lại Hồ sơ
         </Button>
       </View>
     </SafeAreaView>

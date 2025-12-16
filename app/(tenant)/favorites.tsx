@@ -120,7 +120,7 @@ export default function FavoritesScreen() {
       {savedRooms.length > 0 && (
         <View style={styles.searchSection}>
           <Searchbar
-            placeholder='Search saved rooms...'
+            placeholder='Tìm kiếm phòng đã lưu...'
             onChangeText={setSearchQuery}
             value={searchQuery}
             style={styles.searchBar}

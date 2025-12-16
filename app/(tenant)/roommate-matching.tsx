@@ -330,7 +330,7 @@ export default function RoommateMatchingScreen() {
 
       <View style={styles.searchSection}>
         <Searchbar
-          placeholder='Search roommates...'
+          placeholder='Tìm kiếm bạn cùng phòng...'
           onChangeText={setSearchQuery}
           value={searchQuery}
           style={styles.searchBar}

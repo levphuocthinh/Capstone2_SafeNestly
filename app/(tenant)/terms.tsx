@@ -11,12 +11,13 @@ export default function TermsScreen() {
       <BackButton />
       <View style={styles.content}>
         <Text variant='headlineMedium' style={styles.title}>
-          Terms & Conditions
+          Điều khoản & Điều kiện
         </Text>
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='bodyMedium'>
-              Terms of service and privacy policy will be implemented here.
+              Điều khoản dịch vụ và chính sách bảo mật sẽ được triển khai tại
+              đây.
             </Text>
           </Card.Content>
         </Card>
@@ -25,7 +26,7 @@ export default function TermsScreen() {
           onPress={() => router.back()}
           style={styles.button}
         >
-          Back to Profile
+          Quay lại Hồ sơ
         </Button>
       </View>
     </SafeAreaView>

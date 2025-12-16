@@ -154,7 +154,7 @@ export default function AdvancedFiltersScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title='Advanced Filters' />
+      <BackButton title='Bộ lọc nâng cao' />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>

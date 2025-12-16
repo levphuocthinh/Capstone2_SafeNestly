@@ -5,7 +5,7 @@ export interface User {
   id: number;
   email: string;
   fullName: string;
-  role: 'TENANT' | 'LANDLORD' | 'GUEST';
+  role: 'RENTER' | 'OWNER' | 'ADMIN';
   phone?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   dob?: string;
@@ -104,11 +104,11 @@ export const isAuthenticated = async (): Promise<boolean> => {
 
 export const getHomeRouteForRole = (role: string): string => {
   switch (role) {
-    case 'TENANT':
+    case 'RENTER':
       return '/(tenant)/home';
-    case 'LANDLORD':
+    case 'OWNER':
       return '/(landlord)/dashboard';
-    case 'GUEST':
+    case 'ADMIN':
       return '/(guest)/home';
     default:
       return '/(tenant)/home';

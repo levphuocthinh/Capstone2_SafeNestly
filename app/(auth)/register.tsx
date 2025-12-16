@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
 import {
-  Text,
-  TextInput,
-  Button,
-  Card,
-  RadioButton,
-  Chip,
-  useTheme,
-} from 'react-native-paper';
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
+import { Text, TextInput, Button, Menu } from 'react-native-paper';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackButton from '../../components/ui/back-button';
 import { registerUser } from '../../services/auth.service';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -20,39 +19,31 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [birthYear, setBirthYear] = useState('');
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [gender, setGender] = useState('');
-  const [hometown, setHometown] = useState('');
-  const [occupation, setOccupation] = useState('');
-  const [userType, setUserType] = useState('tenant'); // tenant or landlord
+  const [genderMenuVisible, setGenderMenuVisible] = useState(false);
+  const [bio, setBio] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{
     [key: string]: string;
   }>({});
-  const theme = useTheme();
 
   const handleRegister = async () => {
     // Validation
     const errors: { [key: string]: string } = {};
 
-    if (!fullName.trim()) errors.fullName = 'Full name is required';
-    if (!email.trim()) errors.email = 'Email is required';
-    if (!phone.trim()) errors.phone = 'Phone number is required';
-    if (!birthYear.trim()) errors.birthYear = 'Birth year is required';
-    if (!gender) errors.gender = 'Gender is required';
-    if (!hometown.trim()) errors.hometown = 'Hometown is required';
-    if (!occupation.trim()) errors.occupation = 'Occupation is required';
-    if (!password) errors.password = 'Password is required';
+    if (!fullName.trim()) errors.fullName = 'Vui lòng nhập họ và tên';
+    if (!email.trim()) errors.email = 'Vui lòng nhập email';
+    if (!phone.trim()) errors.phone = 'Vui lòng nhập số điện thoại';
+    if (!gender) errors.gender = 'Vui lòng chọn giới tính';
+    if (!password) errors.password = 'Vui lòng nhập mật khẩu';
+    if (password.length < 6)
+      errors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     if (password !== confirmPassword)
-      errors.confirmPassword = "Passwords don't match";
-
-    // Validate birth year
-    const year = parseInt(birthYear);
-    if (isNaN(year) || year < 1950 || year > 2010) {
-      errors.birthYear = 'Please enter a valid birth year (1950-2010)';
-    }
+      errors.confirmPassword = 'Mật khẩu không khớp';
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -61,115 +52,139 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
+      // Format date as yyyy-MM-dd for backend
+      const year = birthDate.getFullYear();
+      const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+      const day = String(birthDate.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+
       const result = await registerUser({
         email: email.trim(),
         password,
         fullName: fullName.trim(),
-        role: userType.toUpperCase() as 'TENANT' | 'LANDLORD' | 'GUEST',
+        role: 'RENTER', // Mặc định là RENTER (người thuê)
         phone: phone.trim(),
         gender: gender.toUpperCase() as 'MALE' | 'FEMALE' | 'OTHER',
-        dob: birthYear, // Using birth year as string for now
-        bio: `${occupation} from ${hometown}`, // Combine occupation and hometown for bio
+        dob: formattedDate,
+        bio: bio.trim() || undefined,
       });
 
       if (result.success) {
-        // Registration successful, navigate to login
         router.replace('/(auth)/login');
       } else {
         setValidationErrors({
-          general: result.error || 'Registration failed. Please try again.',
+          general: result.error || 'Đăng ký thất bại. Vui lòng thử lại.',
         });
       }
     } catch (error) {
       console.error('Registration error:', error);
       setValidationErrors({
-        general: 'Registration failed. Please try again.',
+        general: 'Đăng ký thất bại. Vui lòng thử lại.',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = () => {
-    router.push('/(auth)/login');
+  const formatDate = (date: Date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const getGenderLabel = () => {
+    if (gender === 'male') return 'Nam';
+    if (gender === 'female') return 'Nữ';
+    if (gender === 'other') return 'Khác';
+    return 'Chọn giới tính';
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <BackButton title='Create Account' />
+      <BackButton title='Đăng Ký' />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text
-            variant='headlineLarge'
-            style={[styles.title, { color: theme.colors.primary }]}
-          >
-            Join SafeNestly
-          </Text>
-          <Text variant='bodyLarge' style={styles.subtitle}>
-            Create your account to get started
-          </Text>
-        </View>
+        <View style={styles.formContainer}>
+          {/* Họ và tên */}
+          <TextInput
+            label='Nhập họ và tên'
+            value={fullName}
+            onChangeText={setFullName}
+            mode='outlined'
+            left={<TextInput.Icon icon='account' />}
+            style={styles.input}
+            error={!!validationErrors.fullName}
+          />
+          {!!validationErrors.fullName && (
+            <Text style={styles.errorText}>{validationErrors.fullName}</Text>
+          )}
 
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant='headlineSmall' style={styles.cardTitle}>
-              Account Information
+          {/* Email */}
+          <TextInput
+            label='Nhập địa chỉ email'
+            value={email}
+            onChangeText={setEmail}
+            mode='outlined'
+            keyboardType='email-address'
+            autoCapitalize='none'
+            left={<TextInput.Icon icon='email' />}
+            style={styles.input}
+            error={!!validationErrors.email}
+          />
+          {!!validationErrors.email && (
+            <Text style={styles.errorText}>{validationErrors.email}</Text>
+          )}
+
+          {/* Mật khẩu */}
+          <TextInput
+            label='Tạo mật khẩu'
+            value={password}
+            onChangeText={setPassword}
+            mode='outlined'
+            secureTextEntry={!showPassword}
+            left={<TextInput.Icon icon='lock' />}
+            right={
+              <TextInput.Icon
+                icon={showPassword ? 'eye-off' : 'eye'}
+                onPress={() => setShowPassword(!showPassword)}
+              />
+            }
+            style={styles.input}
+            error={!!validationErrors.password}
+          />
+          {!!validationErrors.password && (
+            <Text style={styles.errorText}>{validationErrors.password}</Text>
+          )}
+
+          {/* Xác nhận mật khẩu */}
+          <TextInput
+            label='Xác nhận mật khẩu'
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            mode='outlined'
+            secureTextEntry={!showConfirmPassword}
+            left={<TextInput.Icon icon='lock-check' />}
+            right={
+              <TextInput.Icon
+                icon={showConfirmPassword ? 'eye-off' : 'eye'}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              />
+            }
+            style={styles.input}
+            error={!!validationErrors.confirmPassword}
+          />
+          {!!validationErrors.confirmPassword && (
+            <Text style={styles.errorText}>
+              {validationErrors.confirmPassword}
             </Text>
+          )}
 
-            <View style={styles.userTypeContainer}>
-              <Text style={styles.sectionTitle}>I am a:</Text>
-              <View style={styles.chipContainer}>
-                <Chip
-                  selected={userType === 'tenant'}
-                  onPress={() => setUserType('tenant')}
-                  style={styles.chip}
-                >
-                  Tenant
-                </Chip>
-                <Chip
-                  selected={userType === 'landlord'}
-                  onPress={() => setUserType('landlord')}
-                  style={styles.chip}
-                >
-                  Landlord
-                </Chip>
-              </View>
-            </View>
-
-            <View style={styles.inputContainer}>
+          {/* SĐT và Ngày sinh */}
+          <View style={styles.rowContainer}>
+            <View style={styles.halfInput}>
               <TextInput
-                label='Full Name'
-                value={fullName}
-                onChangeText={setFullName}
-                mode='outlined'
-                left={<TextInput.Icon icon='account' />}
-                style={styles.input}
-                error={!!validationErrors.fullName}
-              />
-              {!!validationErrors.fullName && (
-                <Text style={styles.errorText}>
-                  {validationErrors.fullName}
-                </Text>
-              )}
-
-              <TextInput
-                label='Email'
-                value={email}
-                onChangeText={setEmail}
-                mode='outlined'
-                keyboardType='email-address'
-                autoCapitalize='none'
-                left={<TextInput.Icon icon='email' />}
-                style={styles.input}
-                error={!!validationErrors.email}
-              />
-              {!!validationErrors.email && (
-                <Text style={styles.errorText}>{validationErrors.email}</Text>
-              )}
-
-              <TextInput
-                label='Phone Number'
+                label='SĐT'
                 value={phone}
                 onChangeText={setPhone}
                 mode='outlined'
@@ -181,157 +196,138 @@ export default function RegisterScreen() {
               {!!validationErrors.phone && (
                 <Text style={styles.errorText}>{validationErrors.phone}</Text>
               )}
-
-              <TextInput
-                label='Password'
-                value={password}
-                onChangeText={setPassword}
-                mode='outlined'
-                secureTextEntry={!showPassword}
-                left={<TextInput.Icon icon='lock' />}
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowPassword(!showPassword)}
-                  />
-                }
-                style={styles.input}
-                error={!!validationErrors.password}
-              />
-              {!!validationErrors.password && (
-                <Text style={styles.errorText}>
-                  {validationErrors.password}
-                </Text>
-              )}
-
-              <TextInput
-                label='Confirm Password'
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                mode='outlined'
-                secureTextEntry={!showConfirmPassword}
-                left={<TextInput.Icon icon='lock-check' />}
-                right={
-                  <TextInput.Icon
-                    icon={showConfirmPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  />
-                }
-                style={styles.input}
-                error={!!validationErrors.confirmPassword}
-              />
-              {!!validationErrors.confirmPassword && (
-                <Text style={styles.errorText}>
-                  {validationErrors.confirmPassword}
-                </Text>
-              )}
             </View>
 
-            <Text variant='headlineSmall' style={styles.sectionTitle}>
-              Personal Information
-            </Text>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                label='Birth Year'
-                value={birthYear}
-                onChangeText={setBirthYear}
-                mode='outlined'
-                keyboardType='number-pad'
-                placeholder='1990'
-                left={<TextInput.Icon icon='calendar' />}
-                style={styles.input}
-                error={!!validationErrors.birthYear}
-              />
-              {!!validationErrors.birthYear && (
-                <Text style={styles.errorText}>
-                  {validationErrors.birthYear}
-                </Text>
-              )}
-
-              <View style={styles.genderContainer}>
-                <Text style={styles.inputLabel}>Gender</Text>
-                <RadioButton.Group onValueChange={setGender} value={gender}>
-                  <View style={styles.radioRow}>
-                    <View style={styles.radioItem}>
-                      <RadioButton value='male' />
-                      <Text>Male</Text>
-                    </View>
-                    <View style={styles.radioItem}>
-                      <RadioButton value='female' />
-                      <Text>Female</Text>
-                    </View>
-                    <View style={styles.radioItem}>
-                      <RadioButton value='other' />
-                      <Text>Other</Text>
-                    </View>
-                  </View>
-                </RadioButton.Group>
-                {!!validationErrors.gender && (
-                  <Text style={styles.errorText}>
-                    {validationErrors.gender}
-                  </Text>
-                )}
-              </View>
-
-              <TextInput
-                label='Hometown'
-                value={hometown}
-                onChangeText={setHometown}
-                mode='outlined'
-                left={<TextInput.Icon icon='map-marker' />}
-                style={styles.input}
-                error={!!validationErrors.hometown}
-              />
-              {!!validationErrors.hometown && (
-                <Text style={styles.errorText}>
-                  {validationErrors.hometown}
-                </Text>
-              )}
-
-              <TextInput
-                label='Occupation'
-                value={occupation}
-                onChangeText={setOccupation}
-                mode='outlined'
-                left={<TextInput.Icon icon='briefcase' />}
-                style={styles.input}
-                error={!!validationErrors.occupation}
-              />
-              {!!validationErrors.occupation && (
-                <Text style={styles.errorText}>
-                  {validationErrors.occupation}
-                </Text>
-              )}
+            <View style={styles.halfInput}>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+                <TextInput
+                  label='Ngày sinh'
+                  value={formatDate(birthDate)}
+                  mode='outlined'
+                  editable={false}
+                  left={<TextInput.Icon icon='calendar' />}
+                  style={styles.input}
+                  pointerEvents='none'
+                />
+              </TouchableOpacity>
             </View>
+          </View>
 
+          {showDatePicker && (
+            <DateTimePicker
+              value={birthDate}
+              mode='date'
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(_event, selectedDate) => {
+                // On Android, close picker after selection
+                if (Platform.OS === 'android') {
+                  setShowDatePicker(false);
+                }
+                if (selectedDate) {
+                  setBirthDate(selectedDate);
+                }
+              }}
+              maximumDate={new Date()}
+            />
+          )}
+
+          {/* iOS: Nút xác nhận khi chọn ngày */}
+          {showDatePicker && Platform.OS === 'ios' && (
             <Button
               mode='contained'
-              onPress={handleRegister}
-              loading={loading}
-              disabled={
-                !email ||
-                !password ||
-                !fullName ||
-                !birthYear ||
-                !gender ||
-                !hometown ||
-                !occupation ||
-                password !== confirmPassword
-              }
-              style={styles.registerButton}
-              contentStyle={styles.buttonContent}
+              onPress={() => setShowDatePicker(false)}
+              style={{ marginBottom: 12 }}
             >
-              Create Account
+              Xác nhận
             </Button>
-          </Card.Content>
-        </Card>
+          )}
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <Button mode='text' onPress={handleLogin} compact>
-            Sign In
+          {/* Giới tính */}
+          <View>
+            <Text style={styles.label}>Giới tính</Text>
+            <Menu
+              visible={genderMenuVisible}
+              onDismiss={() => setGenderMenuVisible(false)}
+              anchor={
+                <TouchableOpacity
+                  onPress={() => setGenderMenuVisible(true)}
+                  style={styles.menuButton}
+                >
+                  <TextInput
+                    label='Chọn giới tính'
+                    value={getGenderLabel()}
+                    mode='outlined'
+                    editable={false}
+                    left={<TextInput.Icon icon='account' />}
+                    right={<TextInput.Icon icon='chevron-down' />}
+                    style={styles.input}
+                    pointerEvents='none'
+                    error={!!validationErrors.gender}
+                  />
+                </TouchableOpacity>
+              }
+            >
+              <Menu.Item
+                onPress={() => {
+                  setGender('male');
+                  setGenderMenuVisible(false);
+                }}
+                title='Nam'
+              />
+              <Menu.Item
+                onPress={() => {
+                  setGender('female');
+                  setGenderMenuVisible(false);
+                }}
+                title='Nữ'
+              />
+              <Menu.Item
+                onPress={() => {
+                  setGender('other');
+                  setGenderMenuVisible(false);
+                }}
+                title='Khác'
+              />
+            </Menu>
+            {!!validationErrors.gender && (
+              <Text style={styles.errorText}>{validationErrors.gender}</Text>
+            )}
+          </View>
+
+          {/* Giới thiệu bản thân */}
+          <TextInput
+            label='Giới thiệu bản thân (tùy chọn)'
+            value={bio}
+            onChangeText={setBio}
+            mode='outlined'
+            multiline
+            numberOfLines={3}
+            style={[styles.input, styles.textArea]}
+            placeholder='Ví dụ: Sinh viên năm 3, thích sạch sẽ, yên tĩnh...'
+          />
+
+          {/* Nút đăng ký */}
+          <Button
+            mode='contained'
+            onPress={handleRegister}
+            loading={loading}
+            disabled={
+              !email ||
+              !password ||
+              !fullName ||
+              !phone ||
+              !gender ||
+              password !== confirmPassword
+            }
+            style={styles.registerButton}
+            contentStyle={styles.buttonContent}
+          >
+            Đăng ký
           </Button>
+
+          {!!validationErrors.general && (
+            <Text style={styles.errorText}>{validationErrors.general}</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -346,88 +342,54 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 20,
+    paddingBottom: 40,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    opacity: 0.7,
-  },
-  card: {
-    marginBottom: 20,
-    elevation: 4,
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  userTypeContainer: {
-    marginBottom: 20,
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  chip: {
-    flex: 1,
-  },
-  inputContainer: {
-    marginBottom: 20,
+  formContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 12,
+    backgroundColor: '#fff',
   },
-  inputLabel: {
-    fontSize: 16,
-    marginBottom: 8,
-    opacity: 0.7,
-  },
-  genderContainer: {
-    marginBottom: 16,
-  },
-  radioRow: {
+  rowContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 12,
+    marginBottom: 12,
   },
-  radioItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  halfInput: {
+    flex: 1,
+  },
+  label: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+  menuButton: {
+    width: '100%',
+  },
+  textArea: {
+    minHeight: 80,
   },
   registerButton: {
-    marginTop: 10,
+    marginTop: 20,
+    borderRadius: 8,
   },
   buttonContent: {
     paddingVertical: 8,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  footerText: {
-    opacity: 0.7,
-  },
   errorText: {
     color: '#d32f2f',
     fontSize: 12,
-    marginTop: 4,
+    marginTop: -8,
     marginBottom: 8,
+    marginLeft: 4,
   },
 });

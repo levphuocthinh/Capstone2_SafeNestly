@@ -11,12 +11,13 @@ export default function SecurityScreen() {
       <BackButton />
       <View style={styles.content}>
         <Text variant='headlineMedium' style={styles.title}>
-          Security Settings
+          Cài đặt Bảo mật
         </Text>
         <Card style={styles.card}>
           <Card.Content>
             <Text variant='bodyMedium'>
-              Security settings and privacy controls will be implemented here.
+              Cài đặt bảo mật và kiểm soát quyền riêng tư sẽ được triển khai tại
+              đây.
             </Text>
           </Card.Content>
         </Card>
@@ -25,7 +26,7 @@ export default function SecurityScreen() {
           onPress={() => router.back()}
           style={styles.button}
         >
-          Back to Profile
+          Quay lại Hồ sơ
         </Button>
       </View>
     </SafeAreaView>
