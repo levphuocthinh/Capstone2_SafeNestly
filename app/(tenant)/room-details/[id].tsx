@@ -44,6 +44,7 @@ export default function RoomDetailsScreen() {
   );
   const [loadingSafetyScore, setLoadingSafetyScore] = useState(false);
   const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [showSafetyScore, setShowSafetyScore] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -101,10 +102,7 @@ export default function RoomDetailsScreen() {
     }
   };
 
-  useEffect(() => {
-    if (!locationData || !room) return;
-    fetchSafetyScore(room, locationData);
-  }, [room, locationData]);
+  // Removed auto-fetch safety score on mount
 
   const fetchSafetyScore = async (
     roomData: RoomDTO,
@@ -120,9 +118,21 @@ export default function RoomDetailsScreen() {
       setSafetyScore(safetyResponse);
     } catch (error) {
       console.error('Error fetching safety score:', error);
-      // Don't show error alert, just log it - safety score is optional
+      Alert.alert('Lỗi', 'Không thể tải điểm an toàn. Vui lòng thử lại.');
     } finally {
       setLoadingSafetyScore(false);
+    }
+  };
+
+  const handleLoadSafetyScore = async () => {
+    if (!room || !locationData) {
+      Alert.alert('Lỗi', 'Không có đủ thông tin để phân tích điểm an toàn.');
+      return;
+    }
+
+    setShowSafetyScore(true);
+    if (!safetyScore) {
+      await fetchSafetyScore(room, locationData);
     }
   };
 
@@ -185,10 +195,6 @@ export default function RoomDetailsScreen() {
     } finally {
       setSubmittingRequest(false);
     }
-  };
-
-  const handleCallLandlord = () => {
-    // Implement call functionality
   };
 
   const handleBack = () => {
@@ -365,7 +371,23 @@ export default function RoomDetailsScreen() {
         <Card style={styles.safetyCard}>
           <Card.Content>
             <Text style={styles.sectionTitle}>Điểm an toàn</Text>
-            {loadingSafetyScore ? (
+
+            {!showSafetyScore ? (
+              <>
+                <Text style={styles.noDataText}>
+                  Phân tích điểm an toàn dựa trên AI và dữ liệu vị trí
+                </Text>
+                <Button
+                  mode='contained'
+                  icon='shield-search'
+                  onPress={handleLoadSafetyScore}
+                  style={styles.loadSafetyButton}
+                  disabled={!locationData || loadingLocation}
+                >
+                  Tìm hiểu thêm
+                </Button>
+              </>
+            ) : loadingSafetyScore ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size='small' color='#6200ee' />
                 <Text style={styles.loadingText}>
@@ -472,7 +494,7 @@ export default function RoomDetailsScreen() {
               </>
             ) : (
               <Text style={styles.noDataText}>
-                Điểm an toàn sẽ được tính toán dựa trên dữ liệu vị trí
+                Không thể tải điểm an toàn. Vui lòng thử lại.
               </Text>
             )}
           </Card.Content>
@@ -506,17 +528,22 @@ export default function RoomDetailsScreen() {
       <View style={styles.contactActions}>
         <Button
           mode='outlined'
-          icon='phone'
-          onPress={handleCallLandlord}
-          style={styles.callButton}
+          icon='chat'
+          onPress={() =>
+            Alert.alert(
+              'Thông báo',
+              'Tính năng trò chuyện đang được phát triển',
+            )
+          }
+          style={styles.chatNowButton}
         >
-          Gọi
+          Trò chuyện ngay
         </Button>
         <Button
           mode='contained'
-          icon='message'
+          icon='calendar-check'
           onPress={handleViewRequest}
-          style={styles.chatButton}
+          style={styles.viewRequestButton}
           loading={submittingRequest}
           disabled={submittingRequest}
         >
@@ -758,13 +785,16 @@ const styles = StyleSheet.create({
     borderTopColor: '#e0e0e0',
     gap: 12,
   },
-  callButton: {
+  chatNowButton: {
     flex: 1,
   },
-  chatButton: {
-    flex: 2,
+  viewRequestButton: {
+    flex: 1,
   },
   nearbyPlacesButton: {
+    marginTop: 12,
+  },
+  loadSafetyButton: {
     marginTop: 12,
   },
   modalContainer: {
