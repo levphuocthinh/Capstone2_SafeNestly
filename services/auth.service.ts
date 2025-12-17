@@ -13,7 +13,7 @@ export interface User {
   id: number;
   email: string;
   fullName: string;
-  role: 'RENTER';
+  role: 'RENTER' | 'OWNER' | 'ADMIN';
   phone?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   dob?: string;
@@ -218,5 +218,62 @@ export const logoutUser = async (): Promise<void> => {
   } catch (error) {
     console.error('Logout error:', error);
     // Continue with logout even if clearing storage fails
+  }
+};
+
+export const updateUserProfile = async (
+  userId: number,
+  userData: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    dob?: string;
+    bio?: string;
+    password?: string;
+  },
+): Promise<{
+  success: boolean;
+  user?: User;
+  error?: string;
+}> => {
+  try {
+    const data: ApiResponse = await api
+      .put(`owner/update/${userId}`, {
+        json: userData,
+      })
+      .json();
+
+    if (data.statusCode === 200) {
+      const user: User = {
+        id: data.user?.id || userId,
+        email: data.user?.email || userData.email || '',
+        fullName: data.user?.fullName || userData.fullName || '',
+        role: (data.user?.role || 'RENTER') as 'RENTER' | 'OWNER' | 'ADMIN',
+        phone: data.user?.phone || userData.phone,
+        gender: (data.user?.gender || userData.gender) as
+          | 'MALE'
+          | 'FEMALE'
+          | 'OTHER',
+        dob: data.user?.dob || userData.dob,
+        bio: data.user?.bio || userData.bio,
+        createdAt: data.user?.createdAt,
+      };
+
+      // Update stored user data
+      await storeUser(user);
+      return { success: true, user };
+    } else {
+      return {
+        success: false,
+        error: data.message || 'Failed to update profile',
+      };
+    }
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error occurred',
+    };
   }
 };

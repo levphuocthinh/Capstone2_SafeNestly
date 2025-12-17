@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { Text, Card, Button, Avatar, List, Switch } from 'react-native-paper';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { logoutUser } from '@/services/auth.service';
 import {
@@ -15,29 +15,36 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const result = await getUserProfile();
+      const result = await getUserProfile();
 
-        if (result.success && result.profile) {
-          setProfile(result.profile);
-        } else {
-          setError(result.error || 'Failed to load profile');
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+      if (result.success && result.profile) {
+        setProfile(result.profile);
+      } else {
+        setError(result.error || 'Failed to load profile');
       }
-    };
-
-    fetchProfile();
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  // Reload profile when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile]),
+  );
 
   const handleEditProfile = () => {
     router.push('./edit-profile');
@@ -247,84 +254,6 @@ export default function ProfileScreen() {
               left={(props) => <List.Icon {...props} icon='home-search' />}
               right={(props) => <List.Icon {...props} icon='chevron-right' />}
               onPress={handleSearchPreferences}
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Notifications */}
-        <Card style={styles.settingsCard}>
-          <Card.Content>
-            <Text variant='titleLarge' style={styles.sectionTitle}>
-              Thông báo
-            </Text>
-
-            <List.Item
-              title='Thông báo đẩy'
-              description='Nhận thông báo về ghép bạn và tin nhắn mới'
-              left={(props) => <List.Icon {...props} icon='bell' />}
-              right={() => (
-                <Switch
-                  value={profile.preferences.notifications}
-                  onValueChange={handleNotificationToggle}
-                />
-              )}
-            />
-
-            <List.Item
-              title='Cập nhật qua email'
-              description='Nhận cập nhật hàng tuần qua email'
-              left={(props) => <List.Icon {...props} icon='email' />}
-              right={() => (
-                <Switch
-                  value={profile.preferences.emailUpdates}
-                  onValueChange={handleEmailToggle}
-                />
-              )}
-            />
-
-            <List.Item
-              title='Dịch vụ vị trí'
-              description='Cho phép truy cập vị trí để gợi ý tốt hơn'
-              left={(props) => <List.Icon {...props} icon='map-marker' />}
-              right={() => (
-                <Switch
-                  value={profile.preferences.locationTracking}
-                  onValueChange={handleLocationToggle}
-                />
-              )}
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Support */}
-        <Card style={styles.settingsCard}>
-          <Card.Content>
-            <Text variant='titleLarge' style={styles.sectionTitle}>
-              Hỗ trợ
-            </Text>
-
-            <List.Item
-              title='Trung tâm trợ giúp'
-              description='Câu hỏi thường gặp và bài viết hỗ trợ'
-              left={(props) => <List.Icon {...props} icon='help-circle' />}
-              right={(props) => <List.Icon {...props} icon='chevron-right' />}
-              onPress={() => router.push('./help')}
-            />
-
-            <List.Item
-              title='Liên hệ chúng tôi'
-              description='Liên hệ với đội ngũ hỗ trợ của chúng tôi'
-              left={(props) => <List.Icon {...props} icon='message-text' />}
-              right={(props) => <List.Icon {...props} icon='chevron-right' />}
-              onPress={() => router.push('./contact')}
-            />
-
-            <List.Item
-              title='Điều khoản & Quyền riêng tư'
-              description='Đọc điều khoản dịch vụ và chính sách quyền riêng tư của chúng tôi'
-              left={(props) => <List.Icon {...props} icon='file-document' />}
-              right={(props) => <List.Icon {...props} icon='chevron-right' />}
-              onPress={() => router.push('./terms')}
             />
           </Card.Content>
         </Card>

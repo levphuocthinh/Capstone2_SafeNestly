@@ -106,6 +106,7 @@ export default function FiltersScreen() {
               Loại phòng
             </Text>
             <View style={styles.chipContainer}>
+              ở
               {roomTypes.map((type) => (
                 <Chip
                   key={type}

@@ -137,20 +137,7 @@ export default function LoginScreen() {
 
             <View style={styles.dividerContainer}>
               <Divider style={styles.divider} />
-              <Text style={styles.orText}>HOẶC</Text>
-              <Divider style={styles.divider} />
             </View>
-
-            <Button
-              mode='outlined'
-              onPress={handlePhoneLogin}
-              icon='phone-outline'
-              style={styles.phoneButton}
-              contentStyle={styles.buttonContent}
-              labelStyle={styles.secondaryButtonLabel}
-            >
-              Đăng nhập bằng số điện thoại
-            </Button>
           </Card.Content>
         </Card>
 
@@ -165,34 +152,6 @@ export default function LoginScreen() {
           >
             Đăng ký ngay
           </Button>
-        </View>
-
-        {/* Truy cập khách */}
-        <View style={styles.guestAccessSection}>
-          <Text variant='bodyMedium' style={styles.guestAccessText}>
-            Muốn xem trước không cần đăng ký?
-          </Text>
-          <Button
-            mode='outlined'
-            onPress={() => router.push('/(guest)/home')}
-            icon='eye-outline'
-            style={styles.guestAccessButton}
-            contentStyle={styles.guestAccessButtonContent}
-            labelStyle={styles.guestAccessButtonLabel}
-          >
-            Xem với tư cách khách
-          </Button>
-          <Text variant='bodySmall' style={styles.guestAccessNote}>
-            Giới hạn tính năng • Đăng ký để sử dụng đầy đủ
-          </Text>
-        </View>
-
-        {/* Thông tin tính năng */}
-        <View style={styles.featuresInfo}>
-          <Text variant='bodySmall' style={styles.featuresText}>
-            ✨ Ghép đôi người ở ghép bằng AI • 🔒 Xác minh chính chủ • 📱 Chat
-            trực tuyến
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
