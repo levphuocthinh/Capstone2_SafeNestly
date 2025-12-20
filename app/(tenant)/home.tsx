@@ -6,6 +6,7 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import {
   Text,
@@ -128,6 +129,10 @@ export default function TenantHomeScreen() {
 
       // Build filter params - read directly from storage to avoid dependency loop
       const filterParams: any = {};
+      filterParams.page = 0;
+      filterParams.size = 100; // Large size to get all results
+      filterParams.sort = 'createdAt';
+      filterParams.order = 'DESC';
 
       // Read current filters from storage (don't use state to avoid dependency)
       const filtersJson = await AsyncStorage.getItem(FILTER_STORAGE_KEY);
@@ -192,6 +197,11 @@ export default function TenantHomeScreen() {
           try {
             setLoading(true);
             const filterParams: any = {};
+            filterParams.page = 0;
+            filterParams.size = 100; // Large size to get all results
+            filterParams.sort = 'createdAt';
+            filterParams.order = 'DESC';
+            // Build filter params - read directly from storage to avoid dependency loop
             const filtersJson = await AsyncStorage.getItem(FILTER_STORAGE_KEY);
             if (filtersJson) {
               const currentFilterParams = JSON.parse(filtersJson);
@@ -282,6 +292,16 @@ export default function TenantHomeScreen() {
       setUnreadCount(0);
     }
   }, []);
+
+  const parsedImageUrl = (imageUrls: string[] | undefined): string => {
+    if (imageUrls && imageUrls.length > 0) {
+      if (imageUrls[0].startsWith('http') || imageUrls[0].startsWith('https')) {
+        return imageUrls[0];
+      }
+      return 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg';
+    }
+    return 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg';
+  };
 
   // Fetch unread count when component mounts
   useEffect(() => {
@@ -468,7 +488,7 @@ export default function TenantHomeScreen() {
     >
       <Card.Cover
         source={{
-          uri: 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg',
+          uri: parsedImageUrl(item.imageUrls),
         }}
         style={styles.cardImage}
       />
@@ -477,14 +497,14 @@ export default function TenantHomeScreen() {
           <Text variant='titleMedium' style={styles.roomTitle}>
             {item.title}
           </Text>
-          <Button
+          {/* <Button
             mode='text'
             icon='heart-outline'
             onPress={() => handleSaveRoom(item.id)}
             style={styles.saveButton}
           >
             Lưu
-          </Button>
+          </Button> */}
         </View>
 
         <Text variant='bodyMedium' style={styles.roomLocation}>
@@ -524,7 +544,11 @@ export default function TenantHomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.userInfo}>
-            <Avatar.Icon size={40} icon='account' />
+            {/* <Image
+              source={require('../../assets/images/logo.png')}
+              style={styles.logoImage}
+              resizeMode='contain'
+            /> */}
             <View style={styles.userText}>
               <Text style={styles.greeting} numberOfLines={1}>
                 Chào buổi sáng!
@@ -642,14 +666,14 @@ export default function TenantHomeScreen() {
             >
               Tìm bạn cùng phòng
             </Button>
-            <Button
+            {/* <Button
               mode='contained-tonal'
               icon='heart'
               onPress={() => router.push('/(tenant)/favorites')}
               style={styles.actionButton}
             >
               Phòng đã lưu
-            </Button>
+            </Button> */}
           </View>
         </View>
 
@@ -724,10 +748,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userText: {
-    marginLeft: 12,
     flex: 1,
     flexShrink: 1,
     minWidth: 0,
+    marginLeft: 12,
   },
   headerActions: {
     flexDirection: 'row',
@@ -959,5 +983,9 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 8,
+  },
+  logoImage: {
+    width: 80,
+    height: 80,
   },
 });

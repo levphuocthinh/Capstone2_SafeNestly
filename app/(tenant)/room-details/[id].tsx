@@ -88,6 +88,16 @@ export default function RoomDetailsScreen() {
     return addressParts.join(', ');
   };
 
+  const parsedImageUrl = (imageUrls: string[] | undefined): string => {
+    if (imageUrls && imageUrls.length > 0) {
+      if (imageUrls[0].startsWith('http') || imageUrls[0].startsWith('https')) {
+        return imageUrls[0];
+      }
+      return 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg';
+    }
+    return 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg';
+  };
+
   const fetchLocationData = async (address: string) => {
     try {
       setLoadingLocation(true);
@@ -250,9 +260,9 @@ export default function RoomDetailsScreen() {
           >
             Quay lại
           </Button>
-          <Button mode='text' icon='heart-outline' onPress={handleSaveRoom}>
+          {/* <Button mode='text' icon='heart-outline' onPress={handleSaveRoom}>
             Lưu
-          </Button>
+          </Button> */}
         </View>
 
         {/* Image Carousel */}
@@ -272,7 +282,7 @@ export default function RoomDetailsScreen() {
               <Card.Cover
                 key={`image-${room.id}-${index}`}
                 source={{
-                  uri: 'https://cdn.thuviennhadat.vn/upload/hinh-anh-bai-viet/HNH/chu-phong-tro-da-nang-co-duoc-tang-gia-thue-sau-khi-cai-tao-phong-tro-khong.jpg',
+                  uri: parsedImageUrl([image]),
                 }}
                 style={styles.roomImage}
               />
@@ -526,7 +536,7 @@ export default function RoomDetailsScreen() {
 
       {/* Contact Actions */}
       <View style={styles.contactActions}>
-        <Button
+        {/* <Button
           mode='outlined'
           icon='chat'
           onPress={() =>
@@ -538,7 +548,7 @@ export default function RoomDetailsScreen() {
           style={styles.chatNowButton}
         >
           Trò chuyện ngay
-        </Button>
+        </Button> */}
         <Button
           mode='contained'
           icon='calendar-check'

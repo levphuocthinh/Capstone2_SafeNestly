@@ -553,7 +553,7 @@ export default function ChatScreen() {
                   : 'Đang ngoại tuyến'}
             </Text>
           </View>
-          <IconButton
+          {/* <IconButton
             icon='phone'
             size={24}
             onPress={() => {
@@ -566,7 +566,7 @@ export default function ChatScreen() {
             onPress={() => {
               console.log('Video call');
             }}
-          />
+          /> */}
         </View>
 
         {error ? (

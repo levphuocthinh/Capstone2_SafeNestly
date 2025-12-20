@@ -58,7 +58,7 @@ export default function LoginScreen() {
               style={styles.logoImage}
               resizeMode='contain'
             />
-            <Text variant='headlineSmall' style={styles.mainSubtitle}>
+            {/* <Text variant='headlineSmall' style={styles.mainSubtitle}>
               Kết nối an toàn 🛡️
             </Text>
             <Text variant='headlineSmall' style={styles.mainSubtitle}>
@@ -74,7 +74,7 @@ export default function LoginScreen() {
             </Text>
             <Text variant='bodyMedium' style={styles.taglineItem}>
               🛡️ Khu vực an toàn
-            </Text>
+            </Text> */}
           </View>
         </View>
 
@@ -86,7 +86,7 @@ export default function LoginScreen() {
                 ĐĂNG NHẬP
               </Text>
               <Text variant='bodyMedium' style={styles.cardSubtitle}>
-                Đăng nhập để tiếp tục hành trình tìm phòng trọ an toàn
+                Đăng nhập để tiếp tục hành trình tìm phòng trọ của bạn!
               </Text>
             </View>
 
